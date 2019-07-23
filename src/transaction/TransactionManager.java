@@ -19,6 +19,15 @@ public interface TransactionManager extends Remote {
     
 	public void enlist(int xid, ResourceManager rm) throws RemoteException;
 
+	// 被workflow controller调用的三个方法
+	public int start() throws RemoteException;
+
+	public boolean commit(int xid)
+            throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException;
+
+	public void abort(int xid)
+            throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException;
+
 	
     /** The RMI name a TransactionManager binds to. */
     public static final String RMIName = "TM";

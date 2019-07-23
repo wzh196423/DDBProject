@@ -38,8 +38,23 @@ public class TransactionManagerImpl
     
 	public void enlist(int xid, ResourceManager rm) throws RemoteException {
 	}
-	
-    public TransactionManagerImpl() throws RemoteException {
+
+	@Override
+	public int start() throws RemoteException {
+		return 0;
+	}
+
+	@Override
+	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException {
+		return false;
+	}
+
+	@Override
+	public void abort(int xid) throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException {
+
+	}
+
+	public TransactionManagerImpl() throws RemoteException {
     }
 
     public boolean dieNow() 
