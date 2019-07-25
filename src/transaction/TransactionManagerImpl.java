@@ -21,8 +21,8 @@ public class TransactionManagerImpl
 //    ResourceManager customerRM = null;
 //    ResourceManager flightRM = null;
 //    ResourceManager hotelRM = null;
-    Hashtable hold_list;
-    int count;
+    private Hashtable<Integer, List<ResourceManager>> hold_list;
+    private int count;
 
 
 
@@ -52,7 +52,7 @@ public class TransactionManagerImpl
     public void enlist(int xid, ResourceManager rm) throws RemoteException {
         if (!hold_list.containsKey(xid))
             return;
-        List<ResourceManager> list = (ArrayList<ResourceManager>)hold_list.get(xid);
+        List<ResourceManager> list = hold_list.get(xid);
         list.add(rm);
         hold_list.put(xid, list);
 
@@ -70,7 +70,7 @@ public class TransactionManagerImpl
     public boolean commit(int xid) throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException {
         if (!hold_list.containsKey(xid))
             return false;
-        List<ResourceManager> list = (ArrayList<ResourceManager>)hold_list.get(xid);
+        List<ResourceManager> list = hold_list.get(xid);
         ResourceManager rm;
         for (int i = 0 ; i < list.size(); i++){
             rm = list.get(i);
@@ -85,7 +85,7 @@ public class TransactionManagerImpl
         if (!hold_list.containsKey(xid)){
             return;
         }
-        List<ResourceManager> list = (ArrayList<ResourceManager>)hold_list.get(xid);
+        List<ResourceManager> list = hold_list.get(xid);
         ResourceManager rm;
         for (int i = 0 ; i < list.size(); i++){
             rm = list.get(i);
@@ -95,7 +95,7 @@ public class TransactionManagerImpl
     }
 
     public TransactionManagerImpl() throws RemoteException {
-        hold_list = new Hashtable();
+        hold_list = new Hashtable<>();
         count = 0;
     }
 

@@ -19,7 +19,7 @@ public interface TransactionManager extends Remote {
     
 	public void enlist(int xid, ResourceManager rm) throws RemoteException;
 
-	// 被workflow controller调用的三个方法
+	// 新添的接口，被workflow controller调用的三个方法
 	public int start() throws RemoteException;
 
 	public boolean commit(int xid)
