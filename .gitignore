@@ -1,7 +1,0 @@
-# Intellij files
-.idea/
-bin/
-build/
-*.iml
-*.classpath
-*.project
