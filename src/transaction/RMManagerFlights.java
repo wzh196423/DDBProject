@@ -7,6 +7,7 @@
 package transaction;
 
 import java.io.FileInputStream;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -23,35 +24,33 @@ public class RMManagerFlights {
 
 	public static void main(String[] args) {
 		String rmiName = ResourceManager.RMINameFlights;
-		
-        Properties prop = new Properties();
-        try
-        {
-            prop.load(new FileInputStream("conf/ddb.conf"));
-        }
-        catch (Exception e1)
-        {
-            e1.printStackTrace();
-            return;
-        }
-        
-		String rmiPort = prop.getProperty("rm." + rmiName + ".port");
-		
+
+		Properties prop = new Properties();
 		try {
-			_rmiRegistry = LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
-		} catch (RemoteException e2) {
-			e2.printStackTrace();
+			prop.load(new FileInputStream("conf/ddb.conf"));
+		} catch (Exception e1) {
+			e1.printStackTrace();
 			return;
 		}
 
-		if (rmiName == null || rmiName.equals("")) {
-			System.err.println("No RMI name given");
-			System.exit(1);
+		String rmiPort = prop.getProperty("rm." + rmiName + ".port");
+		try {
+			LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+		}
+		catch (Exception e) {
+			System.out.println("Port has registered.");
+		}
+		if (rmiPort == null)
+		{
+			rmiPort = "";
+		}
+		else if (!rmiPort.equals("")) {
+			rmiPort = "//:" + rmiPort + "/";
 		}
 
 		try {
-			ResourceManagerImpl obj = new ResourceManagerImpl(rmiName);
-			_rmiRegistry.bind(rmiName, obj);
+			ResourceManager obj = new ResourceManagerImpl(rmiName);
+			Naming.rebind(rmiPort + rmiName, obj);
 			System.out.println(rmiName + " bound");
 		} catch (Exception e) {
 			System.err.println(rmiName + " not bound:" + e);

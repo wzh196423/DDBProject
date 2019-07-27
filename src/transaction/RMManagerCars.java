@@ -7,6 +7,7 @@
 package transaction;
 
 import java.io.FileInputStream;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -33,29 +34,28 @@ public class RMManagerCars {
 		}
 
 		String rmiPort = prop.getProperty("rm." + rmiName + ".port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
+        if (rmiPort == null)
+        {
+            rmiPort = "";
+        }
+        else if (!rmiPort.equals("")) {
+            rmiPort = "//:" + rmiPort + "/";
+        }
 
-		try {
-			_rmiRegistry = LocateRegistry.createRegistry(Integer
-					.parseInt(rmiPort));
-		} catch (RemoteException e2) {
-			e2.printStackTrace();
-			return;
-		}
-
-		if (rmiName == null || rmiName.equals("")) {
-			System.err.println("No RMI name given");
-			System.exit(1);
-		}
-
-		ResourceManagerImpl obj = null;
-		try {
-			obj = new ResourceManagerImpl(rmiName);
-			_rmiRegistry.bind(rmiName, obj);
-			System.out.println(rmiName + " bound");
-		} catch (Exception e) {
-			System.err.println(rmiName + " not bound:" + e);
-			System.exit(1);
-		}
+        try {
+            ResourceManager obj = new ResourceManagerImpl(rmiName);
+            Naming.rebind(rmiPort + rmiName, obj);
+            System.out.println(rmiName + " bound");
+        } catch (Exception e) {
+            System.err.println(rmiName + " not bound:" + e);
+            System.exit(1);
+        }
 
 	}
 }

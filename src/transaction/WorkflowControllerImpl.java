@@ -2,12 +2,12 @@ package transaction;
 
 import lockmgr.DeadlockException;
 
+import java.io.FileInputStream;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.rmi.registry.LocateRegistry;
+import java.util.*;
 
 /**
  * Workflow Controller for the Distributed Travel Reservation System.
@@ -24,7 +24,7 @@ public class WorkflowControllerImpl
     protected int flightcounter, flightprice, carscounter, carsprice, roomscounter, roomsprice;
     protected int xidCounter;
 
-    List<Integer> transaction_list;
+    HashSet<Integer> transaction_list;
 
     protected ResourceManager rmFlights = null;
     protected ResourceManager rmRooms = null;
@@ -32,10 +32,26 @@ public class WorkflowControllerImpl
     protected ResourceManager rmCustomers = null;
     protected TransactionManager tm = null;
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws RemoteException {
         System.setSecurityManager(new RMISecurityManager());
 
-        String rmiPort = System.getProperty("rmiPort");
+        Properties prop = new Properties();
+        try
+        {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+            return;
+        }
+        String rmiPort = prop.getProperty("wc.port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
         if (rmiPort == null) {
             rmiPort = "";
         } else if (!rmiPort.equals("")) {
@@ -63,7 +79,7 @@ public class WorkflowControllerImpl
         flightprice = 0;
 
         xidCounter = 1;
-        transaction_list = new ArrayList<>();
+        transaction_list = new HashSet<>();
 
         while (!reconnect()) {
             // would be better to sleep a while
@@ -628,7 +644,17 @@ public class WorkflowControllerImpl
     // TECHNICAL/TESTING INTERFACE
     public boolean reconnect()
             throws RemoteException {
-        String rmiPort = System.getProperty("rmiPort");
+        Properties prop = new Properties();
+        try
+        {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+            return false;
+        }
+        String rmiPort = prop.getProperty("tm.port");
         if (rmiPort == null) {
             rmiPort = "";
         } else if (!rmiPort.equals("")) {

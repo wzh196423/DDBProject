@@ -1,6 +1,6 @@
 RMIREGPORT =3345 
 PROJECTROOT = ..
-PATH = /usr/bin
+PATH = /usr/java/jdk1.8.0_181/bin/
 all : server client
 
 server : ResourceManager.class \

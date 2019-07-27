@@ -2,6 +2,8 @@ package transaction;
 
 import java.io.FileInputStream;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.util.Properties;
 
 /** 
@@ -11,7 +13,7 @@ import java.util.Properties;
 
 public class Client {
     
-    public static void main(String args[]) {
+    public static void main(String args[]) throws RemoteException {
         Properties prop = new Properties();
         try
         {
@@ -23,6 +25,12 @@ public class Client {
             return;
         }
         String rmiPort = prop.getProperty("wc.port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
         if (rmiPort == null)
         {
             rmiPort = "";
@@ -70,6 +78,7 @@ public class Client {
 
 	} 
 	catch (Exception e) {
+            e.printStackTrace();
 	    System.err.println("Received exception:" + e);
 	    System.exit(1);
 	}
