@@ -62,6 +62,45 @@ public class TransactionManagerImpl
         }
     }
 
+    public static TransactionManager init() throws RemoteException {
+        System.setSecurityManager(new RMISecurityManager());
+
+        Properties prop = new Properties();
+        try
+        {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+            return null;
+        }
+        String rmiPort = prop.getProperty("tm.port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
+        if (rmiPort == null) {
+            rmiPort = "";
+        } else if (!rmiPort.equals("")) {
+            rmiPort = "//:" + rmiPort + "/";
+        }
+
+        TransactionManagerImpl obj = null;
+        try {
+            obj = new TransactionManagerImpl();
+            Naming.bind(rmiPort + TransactionManager.RMIName, obj);
+            System.out.println("TM bound");
+        } catch (Exception e) {
+            System.err.println("TM not bound:" + e);
+            System.exit(1);
+        }
+
+        return obj;
+    }
+
     public void ping() throws RemoteException {
     }
 
@@ -88,10 +127,34 @@ public class TransactionManagerImpl
             return false;
         List<ResourceManager> list = hold_list.get(xid);
         ResourceManager rm;
+        boolean allPrepared = true;
         for (int i = 0 ; i < list.size(); i++){
             rm = list.get(i);
-            rm.commit(xid);
-            System.out.println(rm.getID() + "committed!");
+            try {
+                boolean prepared = rm.prepare(xid);
+                if (!prepared) {
+                    allPrepared = false;
+                    break;
+                }
+            }
+            catch (Exception e) {
+                allPrepared = false;
+                break;
+            }
+        }
+        if (allPrepared) {
+            for (int i = 0; i < list.size(); i++) {
+                rm = list.get(i);
+                rm.commit(xid);
+                System.out.println(rm.getID() + "committed!");
+            }
+        }
+        else {
+            for (int i = 0; i < list.size(); i++) {
+                rm = list.get(i);
+                rm.abort(xid);
+                System.out.println(rm.getID() + "aborted!");
+            }
         }
         return true;
     }

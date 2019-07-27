@@ -14,6 +14,7 @@ import java.util.Properties;
 public class Client {
     
     public static void main(String args[]) throws RemoteException {
+        System.setProperty("java.security.policy", "C:\\Users\\wch\\Desktop\\课程\\DDBProject\\src\\transaction\\security-policy");
         Properties prop = new Properties();
         try
         {
