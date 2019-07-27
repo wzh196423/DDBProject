@@ -133,32 +133,6 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
 
     protected String dieTime;
 
-    public static void main(String[] args) {
-        System.setSecurityManager(new RMISecurityManager());
-
-        String rmiName = System.getProperty("rmiName");
-        if (rmiName == null || rmiName.equals("")) {
-            System.err.println("No RMI name given");
-            System.exit(1);
-        }
-
-        String rmiPort = System.getProperty("rmiPort");
-        if (rmiPort == null) {
-            rmiPort = "";
-        } else if (!rmiPort.equals("")) {
-            rmiPort = "//:" + rmiPort + "/";
-        }
-
-        try {
-            ResourceManagerImpl obj = new ResourceManagerImpl(rmiName);
-            Naming.rebind(rmiPort + rmiName, obj);
-            System.out.println(rmiName + " bound");
-        } catch (Exception e) {
-            System.err.println(rmiName + " not bound:" + e);
-            System.exit(1);
-        }
-    }
-
     public void setDieTime(String time) throws RemoteException
     {
         dieTime = time;
@@ -285,17 +259,17 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
 
     public boolean reconnect()
     {
-//        Properties prop = new Properties();
-//        try
-//        {
-//            prop.load(new FileInputStream("../../conf/ddb.conf"));
-//        }
-//        catch (Exception e1)
-//        {
-//            e1.printStackTrace();
-//            return false;
-//        }
-        String rmiPort = System.getProperty("rmiPort");
+        Properties prop = new Properties();
+        try
+        {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+            return false;
+        }
+        String rmiPort = prop.getProperty("tm.port");
         if (rmiPort == null)
         {
             rmiPort = "";
@@ -322,7 +296,8 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         }
         catch (Exception e)
         {
-            System.err.println("aaa" + myRMIName + " enlist error:" + e);
+            e.printStackTrace();
+            System.err.println(myRMIName + " enlist error:" + e);
             return false;
         }
 

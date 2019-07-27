@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-cd src/transaction
-make clean
-make server
-make client
+#cd src/transaction
+#make clean
+#make server
+#make client
+#
+## run
+#make runregistry &
+#make runtm &
+#make runrmflights &
+#make runrmrooms &
+#make runrmcars &
+#make runrmcustomers &
+#make runwc &
 
-# run
-make runregistry &
-make runtm &
-make runrmflights &
-make runrmrooms &
-make runrmcars &
-make runrmcustomers &
-make runwc &
-
-cd ../test.part2
+cd src/test.part2
 rm results/* -rf
 export CLASSPATH=.:gnujaxp.jar
 javac RunTests.java

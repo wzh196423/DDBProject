@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
  */
 public class Server {
     public static void main(String[] args) throws RemoteException {
-        System.setProperty("java.security.policy", "C:\\Users\\wch\\Desktop\\课程\\DDBProject\\src\\transaction\\security-policy");
+        System.setProperty("java.security.policy", "/Users/wangziheng/git/DDBProject/src/transaction/security-policy");
         TransactionManagerImpl.init();
         ResourceManagerImpl.init(ResourceManager.RMINameCars);
         ResourceManagerImpl.init(ResourceManager.RMINameCustomers);

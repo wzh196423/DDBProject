@@ -74,6 +74,7 @@ public class Client {
     
     private static void launch(String who) {
 	String rmiPort = System.getProperty("rmiPort");
+	rmiPort = "3345";
 	String[] rmiNames = new String[] {TransactionManager.RMIName,
 					  ResourceManager.RMINameFlights,
 					  ResourceManager.RMINameRooms,
@@ -119,6 +120,7 @@ public class Client {
 		wc = (WorkflowController)Naming.lookup("//:" + rmiPort +
 						       "/" + WorkflowController.RMIName);
 	    } catch (Exception e) {
+	    	e.printStackTrace();
 		System.err.println("Cannot bind to " + WorkflowController.RMIName + ": " + e);
 		cleanUpExit(2);
 	    }
