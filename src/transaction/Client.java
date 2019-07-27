@@ -15,14 +15,14 @@ public class Client {
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
             e1.printStackTrace();
             return;
         }
-        String rmiPort = prop.getProperty("wc.port");
+        String rmiPort = System.getProperty("rmiPort");
         if (rmiPort == null)
         {
             rmiPort = "";
@@ -70,6 +70,7 @@ public class Client {
 
 	} 
 	catch (Exception e) {
+        e.printStackTrace();
 	    System.err.println("Received exception:" + e);
 	    System.exit(1);
 	}

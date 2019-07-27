@@ -5,9 +5,7 @@ import lockmgr.DeadlockException;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Workflow Controller for the Distributed Travel Reservation System.
@@ -24,7 +22,7 @@ public class WorkflowControllerImpl
     protected int flightcounter, flightprice, carscounter, carsprice, roomscounter, roomsprice;
     protected int xidCounter;
 
-    List<Integer> transaction_list;
+    Set<Integer> transaction_list;
 
     protected ResourceManager rmFlights = null;
     protected ResourceManager rmRooms = null;
@@ -63,7 +61,7 @@ public class WorkflowControllerImpl
         flightprice = 0;
 
         xidCounter = 1;
-        transaction_list = new ArrayList<>();
+        transaction_list = new HashSet<>();
 
         while (!reconnect()) {
             // would be better to sleep a while

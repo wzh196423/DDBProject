@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +51,32 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
     protected String myRMIName = null; // Used to distinguish this RM from other
 
     protected String dieTime;
+
+    public static void main(String[] args) {
+        System.setSecurityManager(new RMISecurityManager());
+
+        String rmiName = System.getProperty("rmiName");
+        if (rmiName == null || rmiName.equals("")) {
+            System.err.println("No RMI name given");
+            System.exit(1);
+        }
+
+        String rmiPort = System.getProperty("rmiPort");
+        if (rmiPort == null) {
+            rmiPort = "";
+        } else if (!rmiPort.equals("")) {
+            rmiPort = "//:" + rmiPort + "/";
+        }
+
+        try {
+            ResourceManagerImpl obj = new ResourceManagerImpl(rmiName);
+            Naming.rebind(rmiPort + rmiName, obj);
+            System.out.println(rmiName + " bound");
+        } catch (Exception e) {
+            System.err.println(rmiName + " not bound:" + e);
+            System.exit(1);
+        }
+    }
 
     public void setDieTime(String time) throws RemoteException
     {
@@ -180,14 +207,14 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
             e1.printStackTrace();
             return false;
         }
-        String rmiPort = prop.getProperty("tm.port");
+        String rmiPort = System.getProperty("rmiPort");
         if (rmiPort == null)
         {
             rmiPort = "";
@@ -214,7 +241,7 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         }
         catch (Exception e)
         {
-            System.err.println(myRMIName + " enlist error:" + e);
+            System.err.println("aaa" + myRMIName + " enlist error:" + e);
             return false;
         }
 
