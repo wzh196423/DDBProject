@@ -296,6 +296,7 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         }
         catch (Exception e)
         {
+            e.printStackTrace();
             System.err.println(myRMIName + " enlist error:" + e);
             return false;
         }
