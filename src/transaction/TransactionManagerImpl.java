@@ -126,35 +126,35 @@ public class TransactionManagerImpl
         if (!hold_list.containsKey(xid))
             return false;
         List<ResourceManager> list = hold_list.get(xid);
+        List<ResourceManager> preparedList = new ArrayList<>(list.size());
         ResourceManager rm;
-        boolean allPrepared = true;
         for (int i = 0 ; i < list.size(); i++){
             rm = list.get(i);
             try {
-                boolean prepared = rm.prepare(xid);
-                if (!prepared) {
-                    allPrepared = false;
-                    break;
+                if (rm.prepare(xid)) {
+                    preparedList.add(rm);
                 }
             }
             catch (Exception e) {
-                allPrepared = false;
-                break;
+                System.out.println(rm.getID() + " has died!");
             }
         }
-        if (allPrepared) {
+        if (preparedList.size() == list.size()) {
             for (int i = 0; i < list.size(); i++) {
                 rm = list.get(i);
                 rm.commit(xid);
-                System.out.println(rm.getID() + "committed!");
+                System.out.println(rm.getID() + " committed!");
             }
+            hold_list.remove(xid);
         }
         else {
-            for (int i = 0; i < list.size(); i++) {
-                rm = list.get(i);
+            for (int i = 0; i < preparedList.size(); i++) {
+                rm = preparedList.get(i);
                 rm.abort(xid);
-                System.out.println(rm.getID() + "aborted!");
+                System.out.println(rm.getID() + " aborted!");
             }
+            hold_list.remove(xid);
+            throw new TransactionAbortedException(xid, "Transaction aborted!");
         }
         return true;
     }
@@ -171,6 +171,8 @@ public class TransactionManagerImpl
             rm.abort(xid);
             System.out.println(rm.getID() + "aborted!");
         }
+
+        hold_list.remove(xid);
     }
 
     public TransactionManagerImpl() throws RemoteException {
