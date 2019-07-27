@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,7 +30,47 @@ import lockmgr.LockManager;
 
 public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject implements ResourceManager
 {
+    private static final String RMIName = "RM";
     protected final static String TRANSACTION_LOG_FILENAME = "transactions.log";
+
+    public static void main(String args[]) throws RemoteException {
+        System.setSecurityManager(new RMISecurityManager());
+
+        Properties prop = new Properties();
+        try
+        {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+            return;
+        }
+        String rmiPort = prop.getProperty("rm.port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
+        if (rmiPort == null)
+        {
+            rmiPort = "";
+        }
+        else if (!rmiPort.equals("")) {
+            rmiPort = "//:" + rmiPort + "/";
+        }
+
+        try {
+            ResourceManager obj = new ResourceManagerImpl();
+            Naming.rebind(rmiPort + ResourceManagerImpl.RMIName, obj);
+            System.out.println("RM bound");
+        } catch (Exception e) {
+            System.err.println("RM not bound:" + e);
+            System.exit(1);
+        }
+    }
+
 
     public Set getTransactions()
     {

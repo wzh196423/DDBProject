@@ -1,10 +1,9 @@
 package transaction;
 
+import java.io.FileInputStream;
 import java.rmi.*;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
+import java.rmi.registry.LocateRegistry;
+import java.util.*;
 
 /**
  * Transaction Manager for the Distributed Travel Reservation System.
@@ -27,10 +26,26 @@ public class TransactionManagerImpl
 
 
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws RemoteException {
         System.setSecurityManager(new RMISecurityManager());
 
-        String rmiPort = System.getProperty("rmiPort");
+        Properties prop = new Properties();
+        try
+        {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        }
+        catch (Exception e1)
+        {
+            e1.printStackTrace();
+            return;
+        }
+        String rmiPort = prop.getProperty("tm.port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
         if (rmiPort == null) {
             rmiPort = "";
         } else if (!rmiPort.equals("")) {
@@ -39,7 +54,7 @@ public class TransactionManagerImpl
 
         try {
             TransactionManagerImpl obj = new TransactionManagerImpl();
-            Naming.rebind(rmiPort + TransactionManager.RMIName, obj);
+            Naming.bind(rmiPort + TransactionManager.RMIName, obj);
             System.out.println("TM bound");
         } catch (Exception e) {
             System.err.println("TM not bound:" + e);
