@@ -71,6 +71,46 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         }
     }
 
+    public static ResourceManager init(String rmiName) throws RemoteException {
+        System.setSecurityManager(new RMISecurityManager());
+
+        Properties prop = new Properties();
+        try {
+            prop.load(new FileInputStream("conf/ddb.conf"));
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            return null;
+        }
+
+        String rmiPort = prop.getProperty("rm." + rmiName + ".port");
+        try {
+            LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
+        }
+        catch (Exception e) {
+            System.out.println("Port has registered.");
+        }
+        if (rmiPort == null)
+        {
+            rmiPort = "";
+        }
+        else if (!rmiPort.equals("")) {
+            rmiPort = "//:" + rmiPort + "/";
+        }
+
+        ResourceManager obj = null;
+        try {
+            obj = new ResourceManagerImpl(rmiName);
+            Naming.rebind(rmiPort + rmiName, obj);
+            System.out.println(rmiName + " bound");
+        } catch (Exception e) {
+            System.err.println(rmiName + " not bound:" + e);
+            System.exit(1);
+        }
+
+        return obj;
+    }
+
+
 
     public Set getTransactions()
     {
