@@ -54,7 +54,7 @@ Query of flight/rooms/cars/customer does not return correct result after an abor
   </test>
 
 
-   <!--Semantic tests -->
+  <!-- Semantic tests -->
 
   <test id="Saddcmtdelcmt" fpoints="10">
 Cannot delete items.
@@ -85,7 +85,7 @@ Bogus xid does not throw InvalidTransactionException.
   </test>
 
 
-  
+  <!-- Locking tests -->
 
   <test id="Lconc" fpoints="5">
 Two non-conflicting concurrent transactions fail.
@@ -157,7 +157,5 @@ dieRMBeforeCommit: RM does not recover properly.
   <test id="Funlock" fpoints="5">
 RM releases locks before final commit.
   </test>
-
-  <test id="_END_"></test>
 
 </tests>

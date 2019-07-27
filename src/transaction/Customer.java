@@ -42,7 +42,7 @@ public class Customer implements Serializable, ResourceItem {
 
     @Override
     public Object getKey() {
-        return new CustomerKey(custName);
+        return this.custName;
     }
 
     @Override

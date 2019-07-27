@@ -1,4 +1,4 @@
-import javax.xml.parsers.*; 
+import javax.xml.parsers.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 import org.w3c.dom.*;

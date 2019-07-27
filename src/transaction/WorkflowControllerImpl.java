@@ -532,17 +532,22 @@ public class WorkflowControllerImpl
             TransactionAbortedException,
             InvalidTransactionException {
         if (!transaction_list.contains(xid)){
+            System.err.println("nonono");
             throw new InvalidTransactionException(xid, "Have no xid here to queryCustomerBill");
         }
         if (custName == null || flightNum == null)
             return false;
         try{
             Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), flightNum);
-            if (flight == null || flight.getNumAvail() <= 0)
+            if (flight == null || flight.getNumAvail() <= 0) {
+                System.err.println("Have no flight or have no sears in this flight (num = " + flightNum + ")");
                 return false;
+            }
             Customer customer = (Customer) rmCustomers.query(xid, rmCustomers.getID(), custName);
-            if (customer == null)
+            if (customer == null) {
+                System.err.println("Have no customer whose name is " + custName);
                 return false;
+            }
             // nothing wrong
             Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_FLIGHT, flightNum);
 
@@ -552,6 +557,7 @@ public class WorkflowControllerImpl
                 if (rmFlights.update(xid, rmFlights.getID(), flightNum, flight))
                     return true;
             }
+            System.err.println("Other bugs");
             return false;
         } catch (DeadlockException e) {
             abort(xid);

@@ -21,40 +21,40 @@
 start() call fails.
   </test>
 
-  <test id="Bstcmt" fpoints="100" fnext="_END_">
-Cannot commit a non-op transaction.
-  </test>
+  <!--<test id="Bstcmt" fpoints="100" fnext="_END_">-->
+<!--Cannot commit a non-op transaction.-->
+  <!--</test>-->
 
-  <test id="Bstabt" fpoints="100" fnext="_END_">
-Cannot abort a non-op transaction.
-  </test>
+  <!--<test id="Bstabt" fpoints="100" fnext="_END_">-->
+<!--Cannot abort a non-op transaction.-->
+  <!--</test>-->
 
-  <test id="Badd" fpoints="100" fnext="_END_">
-Cannot add flight/rooms/cars/customer.
-  </test>
+  <!--<test id="Badd" fpoints="100" fnext="_END_">-->
+<!--Cannot add flight/rooms/cars/customer.-->
+  <!--</test>-->
 
-  <test id="Baddcmt" fpoints="100" fnext="_END_">
-commit fails after adding flight/rooms/cars/customer.
-  </test>
+  <!--<test id="Baddcmt" fpoints="100" fnext="_END_">-->
+<!--commit fails after adding flight/rooms/cars/customer.-->
+  <!--</test>-->
 
-  <test id="Baddcmtrd" fpoints="100" fnext="_END_">
-Query of flight/rooms/cars/customer does not return correct result.
-  </test>
+  <!--<test id="Baddcmtrd" fpoints="100" fnext="_END_">-->
+<!--Query of flight/rooms/cars/customer does not return correct result.-->
+  <!--</test>-->
 
-  <test id="Baddcmtrsv" fpoints="100" fnext="_END_">
-Cannot make reservations.
-  </test>
+  <!--<test id="Baddcmtrsv" fpoints="100" fnext="_END_">-->
+<!--Cannot make reservations.-->
+  <!--</test>-->
 
-  <test id="Baddabt" fpoints="100" fnext="_END_">
-abort fails after adding flight/rooms/cars/customer.
-  </test>
+  <!--<test id="Baddabt" fpoints="100" fnext="_END_">-->
+<!--abort fails after adding flight/rooms/cars/customer.-->
+  <!--</test>-->
 
-  <test id="Baddabtrd" fpoints="100" fnext="_END_">
-Query of flight/rooms/cars/customer does not return correct result after an abort.
-  </test>
+  <!--<test id="Baddabtrd" fpoints="100" fnext="_END_">-->
+<!--Query of flight/rooms/cars/customer does not return correct result after an abort.-->
+  <!--</test>-->
 
 
-   <!--Semantic tests -->
+  <!-- Semantic tests -->
 
   <test id="Saddcmtdelcmt" fpoints="10">
 Cannot delete items.
@@ -85,7 +85,7 @@ Bogus xid does not throw InvalidTransactionException.
   </test>
 
 
-  
+  <!-- Locking tests -->
 
   <test id="Lconc" fpoints="5">
 Two non-conflicting concurrent transactions fail.
@@ -157,7 +157,5 @@ dieRMBeforeCommit: RM does not recover properly.
   <test id="Funlock" fpoints="5">
 RM releases locks before final commit.
   </test>
-
-  <test id="_END_"></test>
 
 </tests>
