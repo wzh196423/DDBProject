@@ -8,18 +8,18 @@ import java.io.Serializable;
 public class Flight implements Serializable, ResourceItem {
     public static final String INDEX_FLIGHTNUM = "flightNum";
     String flightNum;
-    double price;
+    int price;
     int numSeats;
     int numAvail;
     boolean isdeleted = false;
 
     public Flight(){
         this.flightNum = "";
-        this.price = 0.0;
+        this.price = 0;
         this.numSeats = 0;
         this.numAvail = 0;
     }
-    public Flight(String flightNum, double price, int numSeats, int numAvail){
+    public Flight(String flightNum, int price, int numSeats, int numAvail){
         this.flightNum = flightNum;
         this.price = price;
         this.numSeats = numSeats;
@@ -49,21 +49,37 @@ public class Flight implements Serializable, ResourceItem {
         return flightNum;
     }
 
-    public double getPrice() {
+    public void setFlightNum(String flightNum) {
+        this.flightNum = flightNum;
+    }
+
+    public int getPrice() {
         return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
     }
 
     public int getNumSeats() {
         return numSeats;
     }
 
+    public void setNumSeats(int numSeats) {
+        this.numSeats = numSeats;
+    }
+
     public int getNumAvail() {
         return numAvail;
     }
 
+    public void setNumAvail(int numAvail) {
+        this.numAvail = numAvail;
+    }
+
     @Override
     public Object getKey() {
-        return new FlightKey(flightNum, price, numSeats, numAvail);
+        return flightNum;
     }
 
     @Override

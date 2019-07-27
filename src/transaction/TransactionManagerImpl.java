@@ -23,6 +23,7 @@ public class TransactionManagerImpl
 //    ResourceManager hotelRM = null;
     private Hashtable<Integer, List<ResourceManager>> hold_list;
     private int count;
+    private String dieTime;
 
 
 
@@ -67,7 +68,7 @@ public class TransactionManagerImpl
     }
 
     @Override
-    public boolean commit(int xid) throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException {
+    public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
         if (!hold_list.containsKey(xid))
             return false;
         List<ResourceManager> list = hold_list.get(xid);
@@ -81,7 +82,7 @@ public class TransactionManagerImpl
     }
 
     @Override
-    public void abort(int xid) throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException {
+    public void abort(int xid) throws RemoteException, InvalidTransactionException {
         if (!hold_list.containsKey(xid)){
             return;
         }
@@ -97,6 +98,7 @@ public class TransactionManagerImpl
     public TransactionManagerImpl() throws RemoteException {
         hold_list = new Hashtable<>();
         count = 0;
+        dieTime = "no";
     }
 
     public boolean dieNow()
@@ -104,6 +106,10 @@ public class TransactionManagerImpl
         System.exit(1);
         return true; // We won't ever get here since we exited above;
         // but we still need it to please the compiler.
+    }
+
+    public void setDieTime(String time){
+        this.dieTime = time;
     }
 
 }

@@ -7,18 +7,18 @@ import java.io.Serializable;
  */
 public class CarKey implements Serializable {
     String location;
-    double price;
+    int price;
     int numCars;
     int numAvail;
 
     public CarKey(){
         this.location = "";
-        this.price = 0.0;
+        this.price = 0;
         this.numAvail = 0;
         this.numCars = 0;
     }
 
-    public CarKey(String location, double price, int numCars, int numAvail){
+    public CarKey(String location, int price, int numCars, int numAvail){
         this.location = location;
         this.price = price;
         this.numCars = numCars;
@@ -37,7 +37,7 @@ public class CarKey implements Serializable {
     }
 
     public int hashCode() {
-        return location.hashCode() + (int)price + numCars + numAvail;
+        return location.hashCode() + price + numCars + numAvail;
     }
 
     public String toString() {

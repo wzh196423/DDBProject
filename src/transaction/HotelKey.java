@@ -8,18 +8,18 @@ import java.io.Serializable;
 public class HotelKey implements Serializable {
 
     String location;
-    double price;
+    int price;
     int numRooms;
     int numAvail;
     boolean isdeleted = false;
 
     public HotelKey(){
         this.location = "";
-        this.price = 0.0;
+        this.price = 0;
         this.numRooms = 0;
         this.numAvail = 0;
     }
-    public HotelKey(String location, double price, int numRooms, int numAvail){
+    public HotelKey(String location, int price, int numRooms, int numAvail){
         this.location = location;
         this.price = price;
         this.numRooms = numRooms;
@@ -38,7 +38,7 @@ public class HotelKey implements Serializable {
     }
 
     public int hashCode() {
-        return location.hashCode() + (int)price + numRooms + numAvail;
+        return location.hashCode() + price + numRooms + numAvail;
     }
 
     public String toString() {

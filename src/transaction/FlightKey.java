@@ -7,18 +7,18 @@ import java.io.Serializable;
  */
 public class FlightKey implements Serializable {
     String flightNum;
-    double price;
+    int price;
     int numSeats;
     int numAvail;
 
     public FlightKey(){
         this.flightNum = "";
-        this.price = 0.0;
+        this.price = 0;
         this.numSeats = 0;
         this.numAvail = 0;
     }
 
-    public FlightKey(String flightNum, double price, int numSeats, int numAvail) {
+    public FlightKey(String flightNum, int price, int numSeats, int numAvail) {
         this.flightNum = flightNum;
         this.price = price;
         this.numSeats = numSeats;
@@ -37,7 +37,7 @@ public class FlightKey implements Serializable {
     }
 
     public int hashCode() {
-        return flightNum.hashCode() + (int)price + numSeats + numAvail;
+        return flightNum.hashCode() + price + numSeats + numAvail;
     }
 
     public String toString() {

@@ -8,18 +8,18 @@ import java.io.Serializable;
 public class Hotel implements Serializable, ResourceItem {
     public static final String INDEX_LOCATION = "location";
     String location;
-    double price;
+    int price;
     int numRooms;
     int numAvail;
     boolean isdeleted = false;
 
     public Hotel(){
         this.location = "";
-        this.price = 0.0;
+        this.price = 0;
         this.numRooms = 0;
         this.numAvail = 0;
     }
-    public Hotel(String location, double price, int numRooms, int numAvail){
+    public Hotel(String location, int price, int numRooms, int numAvail){
         this.location = location;
         this.price = price;
         this.numRooms = numRooms;
@@ -49,21 +49,37 @@ public class Hotel implements Serializable, ResourceItem {
         return location;
     }
 
-    public double getPrice() {
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public int getPrice() {
         return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
     }
 
     public int getNumRooms() {
         return numRooms;
     }
 
+    public void setNumRooms(int numRooms) {
+        this.numRooms = numRooms;
+    }
+
     public int getNumAvail() {
         return numAvail;
     }
 
+    public void setNumAvail(int numAvail) {
+        this.numAvail = numAvail;
+    }
+
     @Override
     public Object getKey() {
-        return new HotelKey(location, price, numRooms, numAvail);    }
+        return location;    }
 
     @Override
     public boolean isDeleted() {

@@ -8,17 +8,17 @@ import java.io.Serializable;
 public class Car implements Serializable, ResourceItem {
     public static final String INDEX_LOCATION = "location";
     String location;
-    double price;
+    int price;
     int numCars;
     int numAvail;
     boolean isdeleted = false;
     public Car(){
         this.location = "";
-        this.price = 0.0;
+        this.price = 0;
         this.numAvail = 0;
         this.numCars = 0;
     }
-    public Car(String location, double price, int numCars, int numAvail){
+    public Car(String location, int price, int numCars, int numAvail){
         this.location = location;
         this.price = price;
         this.numCars = numCars;
@@ -46,23 +46,39 @@ public class Car implements Serializable, ResourceItem {
 
     @Override
     public Object getKey() {
-        return new CarKey(location, price, numCars, numAvail);
+        return location;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public double getPrice() {
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public int getPrice() {
         return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
     }
 
     public int getNumCars() {
         return numCars;
     }
 
+    public void setNumCars(int numCars) {
+        this.numCars = numCars;
+    }
+
     public int getNumAvail() {
         return numAvail;
+    }
+
+    public void setNumAvail(int numAvail) {
+        this.numAvail = numAvail;
     }
 
     @Override

@@ -23,10 +23,12 @@ public interface TransactionManager extends Remote {
 	public int start() throws RemoteException;
 
 	public boolean commit(int xid)
-            throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException;
+            throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
 	public void abort(int xid)
-            throws RemoteException, TransactionAbortedException, TransactionManagerUnaccessibleException, InvalidTransactionException;
+            throws RemoteException, InvalidTransactionException;
+
+	public void setDieTime(String time);
 
 	
     /** The RMI name a TransactionManager binds to. */
