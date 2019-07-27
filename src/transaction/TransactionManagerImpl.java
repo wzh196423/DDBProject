@@ -108,7 +108,7 @@ public class TransactionManagerImpl
         // but we still need it to please the compiler.
     }
 
-    public void setDieTime(String time){
+    public void setDieTime(String time) throws RemoteException{
         this.dieTime = time;
     }
 
