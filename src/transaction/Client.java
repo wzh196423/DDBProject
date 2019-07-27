@@ -73,8 +73,17 @@ public class Client {
     }
     
     private static void launch(String who) {
-	String rmiPort = System.getProperty("rmiPort");
-	rmiPort = "3345";
+		Properties prop = new Properties();
+		try
+		{
+			prop.load(new FileInputStream("conf/ddb.conf"));
+		}
+		catch (Exception e1)
+		{
+			e1.printStackTrace();
+			return;
+		}
+		String rmiPort = prop.getProperty("tm.port");
 	String[] rmiNames = new String[] {TransactionManager.RMIName,
 					  ResourceManager.RMINameFlights,
 					  ResourceManager.RMINameRooms,
