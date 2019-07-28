@@ -18,7 +18,7 @@ import java.util.Vector;
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class Add {
+public class AddAndReserve {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
     private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
@@ -72,14 +72,50 @@ public class Add {
                 dieAll();
             }
 
+            if(!wc.commit(xid)) {
+                System.out.println("Commit fail!");
+                dieAll();
+            }
+
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Add fail!");
+            System.out.println("Add and commit fail!");
             dieAll();
         }
 
-        System.out.println("Add pass!");
+        try {
+            int xid = wc.start();
+            if(!wc.reserveFlight(xid, "John", "347")) {
+                System.out.println("Reserve flight fail!");
+                dieAll();
+            }
+            if(!wc.reserveRoom(xid, "John", "Stanford")) {
+                System.out.println("Reserve room fail!");
+                dieAll();
+            }
+            if(!wc.reserveCar(xid, "John", "SFO")) {
+                System.out.println("Reserve car fail!");
+                dieAll();
+            }
+            if(!wc.newCustomer(xid, "John")) {
+                System.out.println("Add customers fail!");
+                dieAll();
+            }
+
+            if(!wc.commit(xid)) {
+                System.out.println("Reserve fail!");
+                dieAll();
+            }
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Add and reserve fail!");
+            dieAll();
+        }
+
+        System.out.println("Add and reserve pass!");
         dieAll();
 
         delDir(dataDir);

@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Transaction Manager for the Distributed Travel Reservation System.
@@ -23,6 +24,8 @@ public class TransactionManagerImpl
     private Hashtable<Integer, List<ResourceManager>> hold_list;
     private int count;
     private String dieTime;
+
+    private AtomicBoolean wait = new AtomicBoolean(false);
 
 
 
@@ -115,10 +118,24 @@ public class TransactionManagerImpl
 
     @Override
     public int start() throws RemoteException {
-        int xid = ++count;
-        List<ResourceManager> list = new ArrayList<>();
-        hold_list.put(xid, list);
-        return xid;
+        synchronized (wait) {
+            while (wait.get()) {
+                try {
+                    wait.wait();
+                } catch (InterruptedException e) {
+                    return -1;
+                }
+
+            }
+
+            int xid = ++count;
+            List<ResourceManager> list = new ArrayList<>();
+            hold_list.put(xid, list);
+
+            wait.set(false);
+            wait.notifyAll();
+            return xid;
+        }
     }
 
     @Override
@@ -169,7 +186,7 @@ public class TransactionManagerImpl
         for (int i = 0 ; i < list.size(); i++){
             rm = list.get(i);
             rm.abort(xid);
-            System.out.println(rm.getID() + "aborted!");
+            System.out.println(rm.getID() + " aborted!");
         }
 
         hold_list.remove(xid);

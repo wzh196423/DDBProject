@@ -18,7 +18,7 @@ import java.util.Vector;
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class Add {
+public class AddAndAbortAndQuery {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
     private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
@@ -72,14 +72,82 @@ public class Add {
                 dieAll();
             }
 
+            if(!wc.commit(xid)) {
+                System.out.println("Commit fail!");
+                dieAll();
+            }
+
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Add fail!");
+            System.out.println("Add and commit fail!");
             dieAll();
         }
 
-        System.out.println("Add pass!");
+        try {
+            int xid = wc.start();
+            if(!wc.addFlight(xid, "347", 100, 620)) {
+                System.out.println("Add flight fail!");
+                dieAll();
+            }
+            if(!wc.addRooms(xid, "Stanford", 200, 300)) {
+                System.out.println("Add rooms fail!");
+                dieAll();
+            }
+            if(!wc.addCars(xid, "SFO", 300, 60)) {
+                System.out.println("Add cars fail!");
+                dieAll();
+            }
+
+            wc.abort(xid);
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Add and abort fail!");
+            dieAll();
+        }
+
+        try {
+            int xid = wc.start();
+            if(wc.queryFlight(xid, "347") != 100) {
+                System.out.println("Query flight fail!");
+                dieAll();
+            }
+            if(wc.queryFlightPrice(xid, "347") != 310) {
+                System.out.println("Query flights price fail!");
+                dieAll();
+            }
+            if(wc.queryRooms(xid, "Stanford") != 200) {
+                System.out.println("Query rooms fail!");
+                dieAll();
+            }
+            if(wc.queryRoomsPrice(xid, "Stanford") != 150) {
+                System.out.println("Query rooms price fail!");
+                dieAll();
+            }
+            if(wc.queryCars(xid, "SFO") != 300) {
+                System.out.println("Query cars fail!");
+                dieAll();
+            }
+            if(wc.queryCarsPrice(xid, "SFO") != 30) {
+                System.out.println("Query cars price fail!");
+                dieAll();
+            }
+
+            if(wc.queryCustomerBill(xid, "John") != 0) {
+                System.out.println("Query customer bill fail!");
+                dieAll();
+            }
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Query fail!");
+            dieAll();
+        }
+
+        System.out.println("Add and query pass!");
         dieAll();
 
         delDir(dataDir);
