@@ -1,8 +1,11 @@
 package transaction;
 
 import lockmgr.DeadlockException;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.net.URISyntaxException;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -32,13 +35,17 @@ public class WorkflowControllerImpl
     protected ResourceManager rmCustomers = null;
     protected TransactionManager tm = null;
 
-    public static void main(String args[]) throws RemoteException {
+    private static String classpath;
+
+    public static void main(String args[]) throws RemoteException, URISyntaxException {
+        classpath = new File(WorkflowControllerImpl.class.getClassLoader().getResource("").toURI()).getPath();
+
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
@@ -130,6 +137,7 @@ public class WorkflowControllerImpl
     public int start()
             throws RemoteException {
         int xid = tm.start();
+        // local list to store all xid within wc
         transaction_list.add(xid);
         return xid;
     }
@@ -141,12 +149,17 @@ public class WorkflowControllerImpl
         if (!transaction_list.contains(xid)){
             throw new InvalidTransactionException(xid, "Have no xid here to commit");
         }
-        if (tm.commit(xid)){
+        try{
+            tm.commit(xid);
             System.out.println("xid = " + xid + " commit successfully!");
             transaction_list.remove(xid);
             return true;
+        }catch (Exception e){
+            throw new TransactionAbortedException(xid, "");
         }
-        return false;
+
+
+//        return false;
     }
 
     public void abort(int xid)
@@ -177,11 +190,13 @@ public class WorkflowControllerImpl
             if (flight != null){
                 flight.setNumSeats(flight.getNumSeats() + numSeats);
                 flight.setNumAvail(flight.getNumAvail() + numSeats);
+
                 if(price > 0){
                     flight.setPrice(price);
                 }
                 return rmFlights.update(xid, rmFlights.getID(), flightNum, flight);
             }else{
+                // means add new flight
                 flight = new Flight(flightNum, price > 0 ? price : 0, numSeats, numSeats);
                 return rmFlights.insert(xid, rmFlights.getID(), flight);
             }
@@ -223,6 +238,7 @@ public class WorkflowControllerImpl
             throws RemoteException,
             TransactionAbortedException,
             InvalidTransactionException {
+        // just the same as addFlights, so no comments here
         if (!transaction_list.contains(xid)){
             throw new InvalidTransactionException(xid, "Have no xid here to addRooms");
         }
@@ -263,7 +279,7 @@ public class WorkflowControllerImpl
             Hotel hotel = (Hotel) rmRooms.query(xid, rmRooms.getID(), location);
             if (hotel == null)
                 return false;
-            if (hotel.getNumAvail() < numRooms)
+            if (hotel.getNumAvail() < numRooms) // have not enough rooms
                 return false;
             // delete both total and available
             hotel.setNumRooms(hotel.getNumRooms() - numRooms);
@@ -279,6 +295,7 @@ public class WorkflowControllerImpl
             throws RemoteException,
             TransactionAbortedException,
             InvalidTransactionException {
+        // just the same as addFlights, so no comments here
         if (!transaction_list.contains(xid)){
             throw new InvalidTransactionException(xid, "Have no xid here to addCars");
         }
@@ -560,31 +577,35 @@ public class WorkflowControllerImpl
                 return -1;
 
             // query all the bills
-            int totolBill = 0;
+            int totalBill = 0;
             Collection<Reservation> reservations = rmCustomers.query(xid, ResourceManager.RESERVATION_TABLENAME, Reservation.INDEX_CUSTNAME, custName);
+            // get all price from reservations
             for (Reservation reservation : reservations){
                 switch (reservation.getResvType()){
                     case Reservation.RESERVATION_TYPE_FLIGHT:{
                         Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), reservation.getKey());
-                        if (flight != null)
-                            totolBill += flight.getPrice();
+                        if (flight != null) {
+                            totalBill += flight.getPrice();
+                        }
                         break;
                     }
                     case Reservation.RESERVATION_TYPE_HOTEL:{
                         Hotel hotel = (Hotel) rmRooms.query(xid, rmRooms.getID(), reservation.getKey());
-                        if (hotel != null)
-                            totolBill += hotel.getPrice();
+                        if (hotel != null) {
+                            totalBill += hotel.getPrice();
+                        }
                         break;
                     }
                     case Reservation.RESERVATION_TYPE_CAR:{
                         Car car = (Car) rmCars.query(xid, rmCars.getID(), reservation.getKey());
-                        if (car != null)
-                            totolBill += car.getPrice();
+                        if (car != null) {
+                            totalBill += car.getPrice();
+                        }
                         break;
                     }
                 }
             }
-            return totolBill;
+            return totalBill;
         } catch (DeadlockException e) {
             abort(xid);
             throw new TransactionAbortedException(xid, "The transaction (xid = "+ xid + ") cause dead lock: " + e.getMessage());
@@ -601,32 +622,31 @@ public class WorkflowControllerImpl
             TransactionAbortedException,
             InvalidTransactionException {
         if (!transaction_list.contains(xid)){
-            System.err.println("nonono");
             throw new InvalidTransactionException(xid, "Have no xid here to queryCustomerBill");
         }
         if (custName == null || flightNum == null)
             return false;
         try{
+            // try to get flight info and customer info
             Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), flightNum);
             if (flight == null || flight.getNumAvail() <= 0) {
-                System.err.println("Have no flight or have no sears in this flight (num = " + flightNum + ")");
+                System.out.println("Have no flight or have no sears in this flight (num = " + flightNum + ")");
                 return false;
             }
             Customer customer = (Customer) rmCustomers.query(xid, rmCustomers.getID(), custName);
             if (customer == null) {
-                System.err.println("Have no customer whose name is " + custName);
+                System.out.println("Have no customer whose name is " + custName);
                 return false;
             }
             // nothing wrong
             Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_FLIGHT, flightNum);
 
-            // we're supposed to update the flight only after the insert succeeded
-            if (rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation)){
-                flight.setNumAvail(flight.getNumAvail() - 1);
-                if (rmFlights.update(xid, rmFlights.getID(), flightNum, flight))
+            // we're supposed to add the reservation only after the flight info if updated
+            flight.setNumAvail(flight.getNumAvail() - 1);
+            if (rmFlights.update(xid, rmFlights.getID(), flightNum, flight)){
+                if (rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation))
                     return true;
             }
-            System.err.println("Other bugs");
             return false;
         } catch (DeadlockException e) {
             abort(xid);
@@ -653,12 +673,13 @@ public class WorkflowControllerImpl
             // nothing wrong
             Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_CAR, location);
 
-            // we're supposed to update the flight only after the insert succeeded
-            if (rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation)){
-                car.setNumAvail(car.getNumAvail() - 1);
-                if (rmCars.update(xid, rmCars.getID(), location, car))
+            // we're supposed to add the reservation only after the car info if updated
+            car.setNumAvail(car.getNumAvail() - 1);
+            if (rmCars.update(xid, rmCars.getID(), location, car)){
+                if (rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation))
                     return true;
             }
+
             return false;
         } catch (DeadlockException e) {
             abort(xid);
@@ -685,13 +706,111 @@ public class WorkflowControllerImpl
             // nothing wrong
             Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_HOTEL, location);
 
-            // we're supposed to update the flight only after the insert succeeded
-            if (rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation)){
-                hotel.setNumAvail(hotel.getNumAvail() - 1);
-                if (rmRooms.update(xid, rmRooms.getID(), location, hotel))
+            // we're supposed to add the reservation only after the room info if updated
+            hotel.setNumAvail(hotel.getNumAvail() - 1);
+            if (rmRooms.update(xid, rmRooms.getID(), location, hotel)) {
+                if (rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation))
                     return true;
             }
             return false;
+        } catch (DeadlockException e) {
+            abort(xid);
+            throw new TransactionAbortedException(xid, "The transaction (xid = "+ xid + ") cause dead lock: " + e.getMessage());
+        }
+    }
+
+    public boolean reserveItinerary(int xid, String custName, List flightNumList, String location, boolean needCar, boolean needRoom)
+            throws RemoteException,
+            TransactionAbortedException,
+            InvalidTransactionException {
+        if (!transaction_list.contains(xid)){
+            throw new InvalidTransactionException(xid, "Have no xid here to reserveItinerary");
+        }
+        if (custName == null)
+            return false;
+//        if (flightNumList.isEmpty() && location == null)
+//            return false;
+        try {
+            Customer customer = (Customer) rmCustomers.query(xid, rmCustomers.getID(), custName);
+            if (customer == null)
+                return false;
+            // use a temp_list to store reservations
+            // if any flight or car or room does not exist, the table will no go through the truly update period
+            Hashtable<Reservation, ResourceItem> temp_table = new Hashtable<>();
+            for (String flightNum : (List<String>)flightNumList){
+                Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), flightNum);
+                if (flight == null || flight.getNumAvail() <= 0)
+                    return false;
+                Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_FLIGHT, flightNum);
+                temp_table.put(reservation, flight);
+//                flight.setNumAvail(flight.getNumAvail() - 1);
+//                if (rmFlights.update(xid, rmFlights.getID(), flightNum, flight)){
+//                    rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation);
+//                }
+            }
+            if (needCar){
+                if (location == null)
+                    return false;
+                Car car = (Car) rmCars.query(xid, rmCars.getID(), location);
+                if (car == null || car.getNumAvail() <= 0)
+                    return false;
+                Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_CAR, location);
+                temp_table.put(reservation, car);
+                // we're supposed to add the reservation only after the car info if updated
+//                car.setNumAvail(car.getNumAvail() - 1);
+//                if (rmCars.update(xid, rmCars.getID(), location, car)){
+//                    rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation);
+//                }
+            }
+            if (needRoom){
+                if (location == null)
+                    return false;
+                Hotel hotel = (Hotel) rmRooms.query(xid, rmRooms.getID(), location);
+                if (hotel == null || hotel.getNumAvail() <= 0)
+                    return false;
+                Reservation reservation = new Reservation(custName, Reservation.RESERVATION_TYPE_HOTEL, location);
+                temp_table.put(reservation, hotel);
+                // we're supposed to add the reservation only after the room info if updated
+//                hotel.setNumAvail(hotel.getNumAvail() - 1);
+//                if (rmRooms.update(xid, rmRooms.getID(), location, hotel)){
+//                    rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation);
+//                }
+            }
+            // nothing wrong, so let's update flight / car / room info and add reservations
+            Enumeration e = temp_table.keys();
+            while (e.hasMoreElements()){
+                Reservation reservation = (Reservation) e.nextElement();
+                ResourceItem ri = temp_table.get(reservation);
+                switch (reservation.getResvType()){
+                    case Reservation.RESERVATION_TYPE_FLIGHT :{
+                        Flight flight = (Flight) ri;
+                        flight.setNumAvail(flight.getNumAvail() - 1);
+                        if (rmFlights.update(xid, rmFlights.getID(), flight.getFlightNum(), flight)) {
+                            rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation);
+                        }
+                        break;
+                    }
+                    case Reservation.RESERVATION_TYPE_CAR :{
+                        Car car = (Car) ri;
+                        car.setNumAvail(car.getNumAvail() - 1);
+                        if (rmCars.update(xid, rmCars.getID(), car.getLocation(), car)) {
+                            rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation);
+                        }
+                        break;
+                    }
+                    case Reservation.RESERVATION_TYPE_HOTEL :{
+                        Hotel hotel = (Hotel) ri;
+                        hotel.setNumAvail(hotel.getNumAvail() - 1);
+                        if (rmRooms.update(xid, rmRooms.getID(), hotel.getLocation(), hotel)) {
+                            rmCustomers.insert(xid, ResourceManager.RESERVATION_TABLENAME, reservation);
+                        }
+                        break;
+                    }
+                    default:
+                        return false;
+                }
+            }
+            return true;
         } catch (DeadlockException e) {
             abort(xid);
             throw new TransactionAbortedException(xid, "The transaction (xid = "+ xid + ") cause dead lock: " + e.getMessage());
@@ -704,7 +823,7 @@ public class WorkflowControllerImpl
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {

@@ -5,7 +5,9 @@ import org.junit.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Mockery;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.rmi.RemoteException;
 import java.util.Hashtable;
 import java.util.List;
@@ -25,10 +27,13 @@ public class TMTest {
     private ResourceManager rmcustomers;
 
     private Mockery context = new JUnit4Mockery();
+    private static String classpath;
 
     @BeforeClass
-    public static void init() throws RemoteException {
-        System.setProperty("java.security.policy", "C:\\Users\\wch\\Desktop\\课程\\DDBProject\\src\\transaction\\security-policy");
+    public static void init() throws RemoteException, URISyntaxException {
+        classpath = new File(TMTest.class.getClassLoader().getResource("").toURI()).getPath();
+
+        System.setProperty("java.security.policy", classpath + "/transaction/security-policy");
         tm = TransactionManagerImpl.init();
     }
 

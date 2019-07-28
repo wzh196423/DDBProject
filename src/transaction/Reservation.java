@@ -56,7 +56,7 @@ public class Reservation implements ResourceItem, Serializable {
 	}
 
 	public Object getKey() {
-		return new ReservationKey(custName, resvType, resvKey);
+		return resvKey;
 	}
 
 	/**

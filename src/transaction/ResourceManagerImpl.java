@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URISyntaxException;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -32,15 +33,18 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
 {
     private static final String RMIName = "RM";
     protected final static String TRANSACTION_LOG_FILENAME = "transactions.log";
+    private static String classpath;
 
-    public static void main(String args[]) throws RemoteException {
+    public static void main(String args[]) throws RemoteException, URISyntaxException {
+        classpath = new File(ResourceManagerImpl.class.getClassLoader().getResource("").toURI()).getPath();
         String rmiName = System.getProperty("rmiName");
 
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
         try {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         } catch (Exception e1) {
             e1.printStackTrace();
             return;
@@ -265,7 +269,7 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
