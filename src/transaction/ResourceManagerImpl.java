@@ -34,19 +34,19 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
     protected final static String TRANSACTION_LOG_FILENAME = "transactions.log";
 
     public static void main(String args[]) throws RemoteException {
+        String rmiName = System.getProperty("rmiName");
+
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
-        try
-        {
+        try {
             prop.load(new FileInputStream("conf/ddb.conf"));
-        }
-        catch (Exception e1)
-        {
+        } catch (Exception e1) {
             e1.printStackTrace();
             return;
         }
-        String rmiPort = prop.getProperty("rm.port");
+
+        String rmiPort = prop.getProperty("rm." + rmiName + ".port");
         try {
             LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
         }
@@ -61,14 +61,17 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
             rmiPort = "//:" + rmiPort + "/";
         }
 
+        ResourceManager obj = null;
         try {
-            ResourceManager obj = new ResourceManagerImpl();
-            Naming.rebind(rmiPort + ResourceManagerImpl.RMIName, obj);
-            System.out.println("RM bound");
+            obj = new ResourceManagerImpl(rmiName);
+            Naming.rebind(rmiPort + rmiName, obj);
+            System.out.println(rmiName + " bound");
         } catch (Exception e) {
-            System.err.println("RM not bound:" + e);
+            e.printStackTrace();
+            System.err.println(rmiName + " not bound:" + e);
             System.exit(1);
         }
+
     }
 
     public static ResourceManager init(String rmiName) throws RemoteException {
