@@ -7,6 +7,7 @@ import org.xml.sax.helpers.*;
 import org.w3c.dom.*;
 
 import java.io.*;
+import java.net.URISyntaxException;
 
 
 public class RunTests {
@@ -22,7 +23,11 @@ public class RunTests {
     private static final String ERRSUFFIX = ".err";
     private static final String GRADESFILE = "grades.txt";
 
-    public static void main(String[] args) {
+    private static String classpath;
+
+    public static void main(String[] args) throws URISyntaxException {
+        classpath = new File(RunTests.class.getClassLoader().getResource("").toURI()).getPath();
+
 
         System.out.println("RunTests started.");
 
@@ -184,9 +189,9 @@ public class RunTests {
                 proc = Runtime.getRuntime().exec(new String[]{
                         command,
                         opt,
-                        "java -classpath bin/ -DrmiPort=" +
+                        "java -classpath " + classpath + " -DrmiPort=" +
                                 System.getProperty("rmiPort") +
-                                " -Djava.security.policy=conf/security-policy transaction.Client <" +
+                                " -Djava.security.policy=" + classpath + "/../conf/security-policy transaction.Client <" +
                                 SCRIPTDIR + id +
                                 " >" + LOGDIR + id + OUTSUFFIX +
                                 " 2>" + LOGDIR + id + ERRSUFFIX});

@@ -1,5 +1,8 @@
 package transaction;
 
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+
+import java.net.URISyntaxException;
 import java.rmi.*;
 import java.io.*;
 import java.util.*;
@@ -24,7 +27,7 @@ import java.lang.reflect.*;
 
 public class Client {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
-    private static final long LAUNCHSLEEP = 5000; // 5 seconds
+    private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
     private static final long BCFINISHDELAY = 500; // 1/2 second
 
@@ -38,7 +41,11 @@ public class Client {
     private static BufferedReader scriptReader =
             new BufferedReader(new InputStreamReader(System.in));
 
-    public static void main(String args[]) {
+    private static String classpath;
+
+
+    public static void main(String args[]) throws URISyntaxException {
+        classpath = new File(Client.class.getClassLoader().getResource("").toURI()).getPath();
         launch("ALL");
 
         readNextLine();
@@ -71,7 +78,7 @@ public class Client {
     private static void launch(String who) {
         Properties prop = new Properties();
         try {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         } catch (Exception e1) {
             e1.printStackTrace();
             return;
@@ -109,9 +116,9 @@ public class Client {
                     Runtime.getRuntime().exec(new String[]{
                             command,
                             opt,
-                            "java -classpath bin/ -DrmiPort=" + rmiPort +
+                            "java -classpath "+classpath+" -DrmiPort=" + rmiPort +
                                     " -DrmiName=" + rmiNames[i] +
-                                    " -Djava.security.policy=conf/security-policy transaction." + classNames[i] +
+                                    " -Djava.security.policy="+classpath+"/transaction/security-policy transaction." + classNames[i] +
                                     " >>" + LOGDIR + rmiNames[i] + LOGSUFFIX + " 2>&1"});
                 } catch (IOException e) {
                     System.err.println("Cannot launch " + rmiNames[i] + ": " + e);

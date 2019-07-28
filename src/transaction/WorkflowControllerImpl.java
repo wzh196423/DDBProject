@@ -3,7 +3,9 @@ package transaction;
 import lockmgr.DeadlockException;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.net.URISyntaxException;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -33,13 +35,17 @@ public class WorkflowControllerImpl
     protected ResourceManager rmCustomers = null;
     protected TransactionManager tm = null;
 
-    public static void main(String args[]) throws RemoteException {
+    private static String classpath;
+
+    public static void main(String args[]) throws RemoteException, URISyntaxException {
+        classpath = new File(WorkflowControllerImpl.class.getClassLoader().getResource("").toURI()).getPath();
+
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("../../conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
@@ -75,7 +81,7 @@ public class WorkflowControllerImpl
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("../../conf/ddb.conf"));
+            prop.load(new FileInputStream("conf/ddb.conf"));
         }
         catch (Exception e1)
         {
@@ -805,7 +811,7 @@ public class WorkflowControllerImpl
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("../../conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {

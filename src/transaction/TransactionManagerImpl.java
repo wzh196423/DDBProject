@@ -1,6 +1,8 @@
 package transaction;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.net.URISyntaxException;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.util.*;
@@ -23,16 +25,19 @@ public class TransactionManagerImpl
     private Hashtable<Integer, List<ResourceManager>> hold_list;
     private Integer count;
     private String dieTime;
+    private static String classpath;
 
 
 
-    public static void main(String args[]) throws RemoteException {
+    public static void main(String args[]) throws RemoteException, URISyntaxException {
+        classpath = new File(TransactionManagerImpl.class.getClassLoader().getResource("").toURI()).getPath();
+
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("../../conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
@@ -62,13 +67,15 @@ public class TransactionManagerImpl
         }
     }
 
-    public static TransactionManager init() throws RemoteException {
+    public static TransactionManager init() throws RemoteException, URISyntaxException {
+        classpath = new File(TransactionManagerImpl.class.getClassLoader().getResource("").toURI()).getPath();
+
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("../../conf/ddb.conf"));
+            prop.load(new FileInputStream(classpath + "/../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
