@@ -18,7 +18,7 @@ import java.util.Vector;
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class Add {
+public class AddAndCommit {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
     private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
@@ -72,14 +72,19 @@ public class Add {
                 dieAll();
             }
 
+            if(!wc.commit(xid)) {
+                System.out.println("Commit fail!");
+                dieAll();
+            }
+
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Add fail!");
+            System.out.println("Add and commit fail!");
             dieAll();
         }
 
-        System.out.println("Add pass!");
+        System.out.println("Add and commit pass!");
         dieAll();
 
         delDir(dataDir);

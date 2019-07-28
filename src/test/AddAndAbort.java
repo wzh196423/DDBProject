@@ -84,6 +84,8 @@ public class AddAndAbort {
         System.out.println("Add and abort pass!");
         dieAll();
 
+        delDir(dataDir);
+
     }
 
 

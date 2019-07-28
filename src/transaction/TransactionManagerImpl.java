@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Transaction Manager for the Distributed Travel Reservation System.
@@ -26,6 +27,8 @@ public class TransactionManagerImpl
     private Integer count;
     private String dieTime;
     private static String classpath;
+
+    private AtomicBoolean wait = new AtomicBoolean(false);
 
 
 
@@ -123,11 +126,22 @@ public class TransactionManagerImpl
 
     @Override
     public int start() throws RemoteException {
-        synchronized (count) {
-            int xid = ++count;
-            synchronized (hold_list) {
-                hold_list.put(xid, new ArrayList<>());
+
+        synchronized (wait) {
+            while (wait.get()) {
+                try {
+                    wait.wait();
+                } catch (InterruptedException e) {
+                    return -1;
+                }
+
             }
+
+            int xid = ++count;
+            List<ResourceManager> list = new ArrayList<>();
+            hold_list.put(xid, list);
+
+            wait.set(false);
             return xid;
         }
     }
@@ -188,7 +202,7 @@ public class TransactionManagerImpl
         for (int i = 0 ; i < list.size(); i++){
             rm = list.get(i);
             rm.abort(xid);
-            System.out.println(rm.getID() + "aborted!");
+            System.out.println(rm.getID() + " aborted!");
         }
         synchronized (hold_list){
             hold_list.remove(xid);

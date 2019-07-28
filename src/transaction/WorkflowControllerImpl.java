@@ -188,8 +188,9 @@ public class WorkflowControllerImpl
         try {
             Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), flightNum);
             if (flight != null){
-                // means to add seats and update price if needed
-                flight.numSeats += numSeats;
+                flight.setNumSeats(flight.getNumSeats() + numSeats);
+                flight.setNumAvail(flight.getNumAvail() + numSeats);
+
                 if(price > 0){
                     flight.setPrice(price);
                 }
@@ -247,7 +248,8 @@ public class WorkflowControllerImpl
         try {
             Hotel hotel = (Hotel) rmRooms.query(xid, rmRooms.getID(), location);
             if (hotel != null){
-                hotel.numRooms += numRooms;
+                hotel.setNumRooms(hotel.getNumRooms() + numRooms);
+                hotel.setNumAvail(hotel.getNumAvail() + numRooms);
                 if(price > 0){
                     hotel.setPrice(price);
                 }
@@ -302,14 +304,22 @@ public class WorkflowControllerImpl
         }
         try {
             Car car = (Car) rmCars.query(xid, rmCars.getID(), location);
+//            System.out.println(car);
+//            System.out.println(rmCars.getID());
+//            System.out.println(location);
+
             if (car != null){
-                car.numCars += numCars;
+//                System.out.println("Not null, Car: " + car.getNumCars() + " " + car.getPrice());
+                car.setNumCars(car.getNumCars() + numCars);
+                car.setNumAvail(car.getNumAvail() + numCars);
                 if(price > 0){
                     car.setPrice(price);
                 }
+//                System.out.println("Not null, Car: " + car.getNumCars() + " " + car.getPrice());
                 return rmCars.update(xid, rmCars.getID(), location, car);
             }else{
                 car = new Car(location, price > 0 ? price : 0, numCars, numCars);
+//                System.out.println("Car: " + car.getNumCars() + " " + car.getPrice());
                 return rmCars.insert(xid, rmCars.getID(), car);
             }
         } catch (DeadlockException e) {
@@ -524,6 +534,7 @@ public class WorkflowControllerImpl
                 return -1;
             return car.getNumAvail();
         } catch (DeadlockException e) {
+
             abort(xid);
             throw new TransactionAbortedException(xid, "The transaction (xid = "+ xid + ") cause dead lock: " + e.getMessage());
         }
@@ -544,6 +555,7 @@ public class WorkflowControllerImpl
                 return -1;
             return car.getPrice();
         } catch (DeadlockException e) {
+//            System.out.println("Abort: " + xid);
             abort(xid);
             throw new TransactionAbortedException(xid, "The transaction (xid = "+ xid + ") cause dead lock: " + e.getMessage());
         }
