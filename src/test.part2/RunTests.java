@@ -137,13 +137,31 @@ public class RunTests {
             String fmsg = test.getFirstChild().getNodeValue().trim();
             //System.out.println("fmsg is: " + fmsg);
 
+            String command;
+            String opt;
+            String os = System.getProperty("os.name").toLowerCase();
+            if(os.contains("windows")) {
+                command = "CMD.exe";
+                opt = "/C";
+            }
+            else {
+                command = "sh";
+                opt = "-c";
+            }
+
             if (clearData) {
                 System.out.println("Clearing data");
                 try {
-                    if (Runtime.getRuntime().exec("CMD.exe /C del /f/s/q data").waitFor() != 0) {
-                        System.err.println("Clear data not successful");
-//			System.exit(1);
+                    if (os.contains("windows")) {
+                        if (Runtime.getRuntime().exec("CMD.exe /C del /s/q data").waitFor() != 0)
+                            System.err.println("Clear data not successful");
                     }
+                    else{
+                        if(Runtime.getRuntime().exec("rm -rf data").waitFor() != 0)
+                            System.err.println("Clear data not successful");
+                    }
+//			System.exit(1);
+
                 } catch (IOException e) {
                     System.err.println("Cannot clear data: " + e);
 		            System.exit(1);
@@ -164,8 +182,8 @@ public class RunTests {
             Process proc = null;
             try {
                 proc = Runtime.getRuntime().exec(new String[]{
-                        "CMD.exe",
-                        "/C",
+                        command,
+                        opt,
                         "java -classpath bin/ -DrmiPort=" +
                                 System.getProperty("rmiPort") +
                                 " -Djava.security.policy=conf/security-policy transaction.Client <" +

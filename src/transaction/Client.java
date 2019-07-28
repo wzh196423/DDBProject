@@ -90,13 +90,25 @@ public class Client {
                 "ResourceManagerImpl",
                 "WorkflowControllerImpl"};
 
+        String command;
+        String opt;
+        String os = System.getProperty("os.name").toLowerCase();
+        if(os.contains("windows")) {
+            command = "CMD.exe";
+            opt = "/C";
+        }
+        else {
+            command = "sh";
+            opt = "-c";
+        }
+
         for (int i = 0; i < rmiNames.length; i++) {
             if (who.equals(rmiNames[i]) ||
                     who.equals("ALL")) {
                 try {
                     Runtime.getRuntime().exec(new String[]{
-                            "CMD.exe",
-                            "/C",
+                            command,
+                            opt,
                             "java -classpath bin/ -DrmiPort=" + rmiPort +
                                     " -DrmiName=" + rmiNames[i] +
                                     " -Djava.security.policy=conf/security-policy transaction." + classNames[i] +
