@@ -92,8 +92,8 @@ public class Client {
 		who.equals("ALL")) { 
 		try {
 		    Runtime.getRuntime().exec(new String[]{
-		    "sh",
-			"-c",
+		    "CMD.exe",
+			"/C",
 			"java -classpath .. -DrmiPort=" + rmiPort +
 			" -DrmiName=" + rmiNames[i] +
 			" -Djava.security.policy=./security-policy transaction." + classNames[i] +
