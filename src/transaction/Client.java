@@ -76,7 +76,7 @@ public class Client {
 		Properties prop = new Properties();
 		try
 		{
-			prop.load(new FileInputStream("conf/ddb.conf"));
+			prop.load(new FileInputStream("../../conf/ddb.conf"));
 		}
 		catch (Exception e1)
 		{

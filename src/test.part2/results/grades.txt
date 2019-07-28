@@ -1,0 +1,7 @@
+For each test your code failed, we have listed the points deducted and the most likely reason:
+
+(FdieRMAfterPrepare)	-5
+dieRMAfterPrepare: transaction is not forcibly aborted.
+
+============================================
+Your final score is 95/100

@@ -37,16 +37,15 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         System.setSecurityManager(new RMISecurityManager());
 
         Properties prop = new Properties();
-        try
-        {
-            prop.load(new FileInputStream("conf/ddb.conf"));
-        }
-        catch (Exception e1)
-        {
+        try {
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
+        } catch (Exception e1) {
             e1.printStackTrace();
             return;
         }
-        String rmiPort = prop.getProperty("rm.port");
+        String rmiName = System.getProperty("rmiName");
+
+        String rmiPort = prop.getProperty("rm." + rmiName + ".port");
         try {
             LocateRegistry.createRegistry(Integer.parseInt(rmiPort));
         }
@@ -61,12 +60,13 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
             rmiPort = "//:" + rmiPort + "/";
         }
 
+        ResourceManager obj = null;
         try {
-            ResourceManager obj = new ResourceManagerImpl();
-            Naming.rebind(rmiPort + ResourceManagerImpl.RMIName, obj);
-            System.out.println("RM bound");
+            obj = new ResourceManagerImpl(rmiName);
+            Naming.rebind(rmiPort + rmiName, obj);
+            System.out.println(rmiName + " bound");
         } catch (Exception e) {
-            System.err.println("RM not bound:" + e);
+            System.err.println(rmiName + " not bound:" + e);
             System.exit(1);
         }
     }
@@ -76,7 +76,7 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
 
         Properties prop = new Properties();
         try {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
         } catch (Exception e1) {
             e1.printStackTrace();
             return null;
@@ -262,7 +262,7 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
         }
         catch (Exception e1)
         {

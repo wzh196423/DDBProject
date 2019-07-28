@@ -21,7 +21,7 @@ public class TransactionManagerImpl
 //    ResourceManager flightRM = null;
 //    ResourceManager hotelRM = null;
     private Hashtable<Integer, List<ResourceManager>> hold_list;
-    private int count;
+    private Integer count;
     private String dieTime;
 
 
@@ -32,7 +32,7 @@ public class TransactionManagerImpl
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
@@ -68,7 +68,7 @@ public class TransactionManagerImpl
         Properties prop = new Properties();
         try
         {
-            prop.load(new FileInputStream("conf/ddb.conf"));
+            prop.load(new FileInputStream("../../conf/ddb.conf"));
         }
         catch (Exception e1)
         {
@@ -107,18 +107,22 @@ public class TransactionManagerImpl
     public void enlist(int xid, ResourceManager rm) throws RemoteException {
         if (!hold_list.containsKey(xid))
             return;
-        List<ResourceManager> list = hold_list.get(xid);
-        list.add(rm);
-        hold_list.put(xid, list);
-
+        synchronized (hold_list) {
+            List<ResourceManager> list = hold_list.get(xid);
+            list.add(rm);
+            hold_list.put(xid, list);
+        }
     }
 
     @Override
     public int start() throws RemoteException {
-        int xid = ++count;
-        List<ResourceManager> list = new ArrayList<>();
-        hold_list.put(xid, list);
-        return xid;
+        synchronized (count) {
+            int xid = ++count;
+            synchronized (hold_list) {
+                hold_list.put(xid, new ArrayList<>());
+            }
+            return xid;
+        }
     }
 
     @Override
@@ -139,13 +143,19 @@ public class TransactionManagerImpl
                 System.out.println(rm.getID() + " has died!");
             }
         }
+        if (dieTime.equals("BeforeCommit"))
+            dieNow();
         if (preparedList.size() == list.size()) {
             for (int i = 0; i < list.size(); i++) {
                 rm = list.get(i);
                 rm.commit(xid);
                 System.out.println(rm.getID() + " committed!");
             }
-            hold_list.remove(xid);
+            synchronized (hold_list) {
+                hold_list.remove(xid);
+            }
+            if (dieTime.equals("AfterCommit"))
+                dieNow();
         }
         else {
             for (int i = 0; i < preparedList.size(); i++) {
@@ -153,7 +163,9 @@ public class TransactionManagerImpl
                 rm.abort(xid);
                 System.out.println(rm.getID() + " aborted!");
             }
-            hold_list.remove(xid);
+            synchronized (hold_list) {
+                hold_list.remove(xid);
+            }
             throw new TransactionAbortedException(xid, "Transaction aborted!");
         }
         return true;
@@ -171,8 +183,10 @@ public class TransactionManagerImpl
             rm.abort(xid);
             System.out.println(rm.getID() + "aborted!");
         }
+        synchronized (hold_list){
+            hold_list.remove(xid);
+        }
 
-        hold_list.remove(xid);
     }
 
     public TransactionManagerImpl() throws RemoteException {
