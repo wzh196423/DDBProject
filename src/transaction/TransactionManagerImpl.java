@@ -30,9 +30,9 @@ public class TransactionManagerImpl
     private static String RECORD_DIR = "data";
     private static String RECORD_FILE = RECORD_DIR + "/transaction.record";
 
-    private static final String STARTED = "started";
-    private static final String COMMITTED = "committed";
-    private static final String ABORTED = "aborted";
+    public static final String STARTED = "started";
+    public static final String COMMITTED = "committed";
+    public static final String ABORTED = "aborted";
 
 
     private AtomicBoolean wait = new AtomicBoolean(false);
@@ -115,7 +115,7 @@ public class TransactionManagerImpl
     public void ping() throws RemoteException {
     }
 
-    private void recordStatus(int xid, String status) throws RemoteException {
+    public void recordStatus(int xid, String status) throws RemoteException {
         synchronized (recordLock) {
             if (recordLock.get()) {
                 try {
@@ -154,7 +154,7 @@ public class TransactionManagerImpl
         }
     }
 
-    private String readStatus(int xid) throws RemoteException {
+    public String readStatus(int xid) throws RemoteException {
         String status = null;
         synchronized (recordLock) {
             BufferedReader reader = null;
@@ -183,18 +183,20 @@ public class TransactionManagerImpl
     }
 
     public void enlist(int xid, ResourceManager rm) throws RemoteException {
+
         if (!hold_list.containsKey(xid)) {
             // means the transaction(id=xid) has been committed
-            String status = readStatus(xid);
-            System.out.println("xid=" + xid + ", status=" + status);
-            try {
-                if (COMMITTED.equals(status))
-                    rm.commit(xid);
-                else if (ABORTED.equals(status))
-                    rm.abort(xid);
-            } catch (InvalidTransactionException e) {
-                throw new RemoteException("Enlist fail!");
-            }
+//            String status = readStatus(xid);
+//            System.out.println("xid=" + xid + ", status=" + status);
+//            try {
+//                if (COMMITTED.equals(status))
+//                    rm.commit(xid);
+//                else if (ABORTED.equals(status))
+//                    rm.abort(xid);
+//            } catch (InvalidTransactionException e) {
+//                e.printStackTrace();
+//                throw new RemoteException("Enlist fail!");
+//            }
             return;
         }
         synchronized (hold_list) {
@@ -238,8 +240,11 @@ public class TransactionManagerImpl
 
         Set<ResourceManager> list = hold_list.get(xid);
         if (waitingToAbort.contains(xid)) {
-            abort(xid);
+            synchronized (hold_list) {
+                hold_list.remove(xid);
+            }
             waitingToAbort.remove(xid);
+            recordStatus(xid, ABORTED);
             throw new TransactionAbortedException(xid, "Transaction aborted!");
         }
         Set<ResourceManager> preparedList = new HashSet<>(list.size());
@@ -256,13 +261,12 @@ public class TransactionManagerImpl
         if (dieTime.equals("BeforeCommit"))
             dieNow();
         if (preparedList.size() == list.size()) {
-            try {
-
-                for (ResourceManager rm : list) {
+            for (ResourceManager rm : list) {
+                try {
                     rm.commit(xid);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
             synchronized (hold_list) {
                 hold_list.remove(xid);
@@ -305,7 +309,7 @@ public class TransactionManagerImpl
     }
 
     public void recover() throws RemoteException{
-        System.out.println("TM recover!");
+        int max_id = 0;
         HashSet<Integer> t_xids = new HashSet<>(100);
         BufferedReader reader = null;
         try {
@@ -314,6 +318,9 @@ public class TransactionManagerImpl
             while ((line = reader.readLine()) != null) {
                 String[] strs = line.split("\t");
                 int xid = Integer.parseInt(strs[0]);
+                if(xid > max_id) {
+                    max_id = xid;
+                }
                 String status = strs[1];
 
                 if(STARTED.equals(status)) {
@@ -343,9 +350,12 @@ public class TransactionManagerImpl
 
         synchronized (waitingToAbort) {
             for(int xid: t_xids) {
+                System.out.println("Wait to abort: " + xid);
                 waitingToAbort.add(xid);
             }
         }
+
+        count = max_id;
 
     }
 

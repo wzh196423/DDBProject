@@ -293,13 +293,24 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
             for (Iterator iter = xids.iterator(); iter.hasNext();)
             {
                 int xid = ((Integer) iter.next()).intValue();
-                System.out.println(myRMIName + " Re-enlist to TM with xid" + xid);
-                tm.enlist(xid, this);
-                if (dieTime.equals("AfterEnlist"))
-                    dieNow();
-                //                iter.remove();
+                String status = tm.readStatus(xid);
+                if(TransactionManagerImpl.ABORTED.equals(status) || TransactionManagerImpl.STARTED.equals(status)){
+                    abort(xid);
+                }
+                else if(TransactionManagerImpl.COMMITTED.equals(status)) {
+                    commit(xid);
+                }
+                else {
+                    System.out.println(myRMIName + " Re-enlist to TM with xid " + xid);
+                    tm.enlist(xid, this);
+                    if (dieTime.equals("AfterEnlist"))
+                        dieNow();
+                    //                iter.remove();
+                }
             }
             System.out.println(myRMIName + " bound to TM");
+
+            Naming.rebind(rmiPort + myRMIName, this);
         }
         catch (Exception e)
         {
