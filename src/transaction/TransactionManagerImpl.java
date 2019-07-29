@@ -34,6 +34,8 @@ public class TransactionManagerImpl
     public static final String COMMITTED = "committed";
     public static final String ABORTED = "aborted";
 
+    private Hashtable<Integer, String> statusTable = new Hashtable<>();
+
 
     private AtomicBoolean wait = new AtomicBoolean(false);
     private AtomicBoolean recordLock = new AtomicBoolean(false);
@@ -391,6 +393,62 @@ public class TransactionManagerImpl
 
     public void setDieTime(String time) throws RemoteException {
         this.dieTime = time;
+    }
+
+    protected Hashtable<Integer, String> loadStatusLogs()
+    {
+        File xidLog = new File("data/status.log");
+        ObjectInputStream oin = null;
+        try
+        {
+            oin = new ObjectInputStream(new FileInputStream(xidLog));
+            return (Hashtable<Integer, String>) oin.readObject();
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+        finally
+        {
+            try
+            {
+                if (oin != null)
+                    oin.close();
+            }
+            catch (IOException e1)
+            {
+            }
+        }
+    }
+
+    protected boolean storeStatusLogs(Hashtable<Integer, String> statusTable)
+    {
+        File xidLog = new File("data/status.log");
+        xidLog.getParentFile().mkdirs();
+        xidLog.getParentFile().mkdirs();
+        ObjectOutputStream oout = null;
+        try
+        {
+            oout = new ObjectOutputStream(new FileOutputStream(xidLog));
+            oout.writeObject(statusTable);
+            oout.flush();
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+        finally
+        {
+            try
+            {
+                if (oout != null)
+                    oout.close();
+            }
+            catch (IOException e1)
+            {
+            }
+        }
     }
 
 }

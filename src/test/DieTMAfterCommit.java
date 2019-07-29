@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -15,7 +16,7 @@ import java.util.Vector;
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class DieTM {
+public class DieTMAfterCommit {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
     private static final long LAUNCHSLEEP = 5000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
@@ -96,15 +97,8 @@ public class DieTM {
                 dieAll();
             }
 
-            if(!wc.dieNow("TM")) {
+            if(!wc.dieTMAfterCommit()) {
                 System.out.println("Die TM fail!");
-                dieAll();
-            }
-
-            launch("TM", "TransactionManagerImpl");
-
-            if(!wc.reconnect()) {
-                System.out.println("Reconnect fail!");
                 dieAll();
             }
 
@@ -113,8 +107,15 @@ public class DieTM {
                 System.out.println("Catch exception fail!");
                 dieAll();
             }
-            catch (TransactionAbortedException e) {
+            catch (RemoteException e) {
 
+            }
+
+            launch("TM", "TransactionManagerImpl");
+
+            if(!wc.reconnect()) {
+                System.out.println("Reconnect fail!");
+                dieAll();
             }
 
             if(!wc.dieNow("RMFlights")) {
@@ -151,27 +152,27 @@ public class DieTM {
 
         try {
             int xid = wc.start();
-            if(wc.queryFlight(xid, "347") != 100) {
+            if(wc.queryFlight(xid, "347") != 200) {
                 System.out.println("Query flight fail!");
                 dieAll();
             }
-            if(wc.queryFlightPrice(xid, "347") != 310) {
+            if(wc.queryFlightPrice(xid, "347") != 620) {
                 System.out.println("Query flights price fail!");
                 dieAll();
             }
-            if(wc.queryRooms(xid, "Stanford") != 200) {
+            if(wc.queryRooms(xid, "Stanford") != 400) {
                 System.out.println("Query rooms fail!");
                 dieAll();
             }
-            if(wc.queryRoomsPrice(xid, "Stanford") != 150) {
+            if(wc.queryRoomsPrice(xid, "Stanford") != 300) {
                 System.out.println("Query rooms price fail!");
                 dieAll();
             }
-            if(wc.queryCars(xid, "SFO") != 300) {
+            if(wc.queryCars(xid, "SFO") != 600) {
                 System.out.println("Query cars fail!");
                 dieAll();
             }
-            if(wc.queryCarsPrice(xid, "SFO") != 30) {
+            if(wc.queryCarsPrice(xid, "SFO") != 60) {
                 System.out.println("Query cars price fail!");
                 dieAll();
             }
