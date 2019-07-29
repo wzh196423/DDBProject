@@ -52,7 +52,7 @@ public class RunTests {
 
         Document doc = null;
         try {
-            doc = db.parse(new File(args[0]));
+            doc = db.parse(new File(classpath + "/test.part2/MASTER.xml"));
         } catch (SAXException se) {
             System.err.println(se);
             System.exit(1);
@@ -156,24 +156,11 @@ public class RunTests {
 
             if (clearData) {
                 System.out.println("Clearing data");
-                try {
-                    if (os.contains("windows")) {
-                        if (Runtime.getRuntime().exec("CMD.exe /C del /s/q data").waitFor() != 0)
-                            System.err.println("Clear data not successful");
-                    }
-                    else{
-                        if(Runtime.getRuntime().exec("rm -rf data").waitFor() != 0)
-                            System.err.println("Clear data not successful");
-                    }
+
+                delDir(new File("data"));
 //			System.exit(1);
 
-                } catch (IOException e) {
-                    System.err.println("Cannot clear data: " + e);
-		            System.exit(1);
-                } catch (InterruptedException e) {
-                    System.err.println("WaitFor interrupted.");
-                    System.exit(1);
-                }
+
 
 		/*
         if (!(new File("data").mkdir())) {
@@ -248,5 +235,20 @@ public class RunTests {
                 score + "/" + totalPoints);
         grades.close();
         System.exit(0);
+    }
+
+    public static void delDir(File file) {
+        if (!file.exists()) {
+            return;
+        }
+        if (file.isDirectory()) {
+            File zFiles[] = file.listFiles();
+            for (File file2 : zFiles) {
+                delDir(file2);
+            }
+            file.delete();
+        } else {
+            file.delete();
+        }
     }
 }

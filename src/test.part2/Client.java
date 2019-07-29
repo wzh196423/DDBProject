@@ -93,7 +93,7 @@ public class Client {
 		try {
 		    Runtime.getRuntime().exec(new String[]{
 		    "CMD.exe",
-			"/C",
+			"-c",
 			"java -classpath .. -DrmiPort=" + rmiPort +
 			" -DrmiName=" + rmiNames[i] +
 			" -Djava.security.policy=./security-policy transaction." + classNames[i] +
