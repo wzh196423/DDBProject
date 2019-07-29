@@ -148,17 +148,12 @@ public class WorkflowControllerImpl
         if (!transaction_list.contains(xid)){
             throw new InvalidTransactionException(xid, "Have no xid here to commit");
         }
-        try{
-            tm.commit(xid);
-            System.out.println("xid = " + xid + " commit successfully!");
-            transaction_list.remove(xid);
-            // persist to local disk
-
-            objectWrite(transaction_list, wc_persist);
-            return true;
-        }catch (Exception e){
-            throw new TransactionAbortedException(xid, "");
-        }
+        tm.commit(xid);
+        System.out.println("xid = " + xid + " commit successfully!");
+        transaction_list.remove(xid);
+        // persist to local disk
+        objectWrite(transaction_list, wc_persist);
+        return true;
 
 
 //        return false;

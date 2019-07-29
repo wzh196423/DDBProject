@@ -190,9 +190,11 @@ public class TransactionManagerImpl
             synchronized (hold_list) {
                 hold_list.remove(xid);
             }
-            System.out.println("All rm has committed successfully!");
-            if (dieTime.equals("AfterCommit"))
+            System.out.println("All rm has committed successfully! xid = " + xid);
+            if (dieTime.equals("AfterCommit")) {
+                System.out.println("TM has to diw now ! xid = " + xid);
                 dieNow();
+            }
         }
         else {
 //            for (int i = 0; i < preparedList.size(); i++) {
@@ -207,7 +209,7 @@ public class TransactionManagerImpl
             synchronized (hold_list) {
                 hold_list.remove(xid);
             }
-            System.out.println("All rm has aborted successfully since some rm has aborted before!");
+            System.out.println("All rm has aborted successfully since some rm has aborted before! xid = " + xid);
             throw new TransactionAbortedException(xid, "Transaction aborted!");
         }
         return true;
