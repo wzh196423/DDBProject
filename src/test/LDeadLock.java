@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class DeadLock {
+public class LDeadLock {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
     private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
