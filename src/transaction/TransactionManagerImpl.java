@@ -115,9 +115,17 @@ public class TransactionManagerImpl
     }
 
     public void enlist(int xid, ResourceManager rm) throws RemoteException {
-        if (!hold_list.containsKey(xid))
+        if (!hold_list.containsKey(xid)) {
+            // means the transaction(id=xid) has been committed
+            try {
+                rm.abort(xid);
+            } catch (InvalidTransactionException e) {
+                e.printStackTrace();
+            }
             return;
+        }
         synchronized (hold_list) {
+            System.out.println("Enlist xid = " + xid + " " + rm.getID());
             List<ResourceManager> list = hold_list.get(xid);
             list.add(rm);
             hold_list.put(xid, list);
@@ -159,34 +167,47 @@ public class TransactionManagerImpl
                 if (rm.prepare(xid)) {
                     preparedList.add(rm);
                 }
-            }
-            catch (Exception e) {
-                System.out.println(rm.getID() + " has died!");
+            } catch (Exception e) {
+//                e.printStackTrace();
+                System.out.println("Some rm has died!");
             }
         }
         if (dieTime.equals("BeforeCommit"))
             dieNow();
         if (preparedList.size() == list.size()) {
-            for (int i = 0; i < list.size(); i++) {
-                rm = list.get(i);
-                rm.commit(xid);
-                System.out.println(rm.getID() + " committed!");
+            try {
+//                for (int i = 0; i < list.size(); i++) {
+//                    rm = list.get(i);
+//                    rm.commit(xid);
+//                }
+                for (ResourceManager resourceManager : new HashSet<>(preparedList)) {
+//                    rm = list.get(i);
+                    resourceManager.commit(xid);
+                }
+            }catch (Exception e){
+                e.printStackTrace();
             }
             synchronized (hold_list) {
                 hold_list.remove(xid);
             }
+            System.out.println("All rm has committed successfully!");
             if (dieTime.equals("AfterCommit"))
                 dieNow();
         }
         else {
-            for (int i = 0; i < preparedList.size(); i++) {
-                rm = preparedList.get(i);
-                rm.abort(xid);
-                System.out.println(rm.getID() + " aborted!");
+//            for (int i = 0; i < preparedList.size(); i++) {
+//                rm = preparedList.get(i);
+//                rm.abort(xid);
+//                System.out.println("Some rm has aborted!");
+//            }
+            for (ResourceManager resourceManager : new HashSet<>(preparedList)) {
+                resourceManager.abort(xid);
+                System.out.println("Some rm has aborted!");
             }
             synchronized (hold_list) {
                 hold_list.remove(xid);
             }
+            System.out.println("All rm has aborted successfully since some rm has aborted before!");
             throw new TransactionAbortedException(xid, "Transaction aborted!");
         }
         return true;
@@ -198,11 +219,15 @@ public class TransactionManagerImpl
             return;
         }
         List<ResourceManager> list = hold_list.get(xid);
-        ResourceManager rm;
-        for (int i = 0 ; i < list.size(); i++){
-            rm = list.get(i);
-            rm.abort(xid);
-            System.out.println(rm.getID() + " aborted!");
+//        ResourceManager rm;
+//        for (int i = 0 ; i < list.size(); i++){
+//            rm = list.get(i);
+//            rm.abort(xid);
+//            System.out.println(rm.getID() + " aborted!");
+//        }
+        for (ResourceManager resourceManager : new HashSet<>(list)) {
+            resourceManager.abort(xid);
+            System.out.println(resourceManager.getID() + " aborted!");
         }
         synchronized (hold_list){
             hold_list.remove(xid);

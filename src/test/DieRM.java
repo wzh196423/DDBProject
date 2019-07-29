@@ -64,15 +64,20 @@ public class DieRM {
             if (!wc.commit(xid)){
                 fail("Commit " + xid + "fail");
             }
+
+
             xid = wc.start();
             ArrayList<String> flights = new ArrayList<>();
             flights.add("347");
             if (!wc.reserveItinerary(xid, "John",flights, "SFO",true,false)){
                 fail("reserveItinerary fail! xid = " + xid);
             }
+            System.out.println("reserveItinerary success");
             if (!wc.addRooms(xid, "Stanford", 200, 300)){
                 fail("add rooms fail! xid = " + xid);
             }
+            System.out.println("addRooms success");
+
             if (!wc.dieNow("RMCars")){
                 fail("Dei RMCars failed");
             }
@@ -80,12 +85,15 @@ public class DieRM {
             if (!wc.reconnect()){
                 fail("Reconnect failed");
             }
+
             try {
                 wc.commit(xid);
                 fail("TransactionAbortedException expected! But there's no");
             }catch (TransactionAbortedException exception){
                 System.out.println("Catch exception as expected");
             }
+
+
             xid = wc.start();
             if (xid != 3)
                 fail("Xid wrong. Expect 3 but = " + xid);
@@ -110,7 +118,7 @@ public class DieRM {
             fail("Add and abort fail!");
         }
 
-        System.out.println("Add and abort pass!");
+        System.out.println("DieRM pass!");
         dieAll();
 
     }
