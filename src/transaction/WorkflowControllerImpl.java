@@ -3,8 +3,7 @@ package transaction;
 import lockmgr.DeadlockException;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
@@ -24,10 +23,7 @@ public class WorkflowControllerImpl
         extends java.rmi.server.UnicastRemoteObject
         implements WorkflowController {
 
-    protected int flightcounter, flightprice, carscounter, carsprice, roomscounter, roomsprice;
-    protected int xidCounter;
-
-    HashSet<Integer> transaction_list;
+    HashSet<Integer> transaction_list = new HashSet<>();
 
     protected ResourceManager rmFlights = null;
     protected ResourceManager rmRooms = null;
@@ -36,6 +32,7 @@ public class WorkflowControllerImpl
     protected TransactionManager tm = null;
 
     private static String classpath;
+    private static String wc_persist = "data/wc_persist.log";
 
     public static void main(String args[]) throws RemoteException, URISyntaxException {
         classpath = new File(WorkflowControllerImpl.class.getClassLoader().getResource("").toURI()).getPath();
@@ -116,19 +113,19 @@ public class WorkflowControllerImpl
 
 
     public WorkflowControllerImpl() throws RemoteException {
-        flightcounter = 0;
-        flightprice = 0;
-        carscounter = 0;
-        carsprice = 0;
-        roomscounter = 0;
-        roomsprice = 0;
-        flightprice = 0;
-
-        xidCounter = 1;
-        transaction_list = new HashSet<>();
+        // old impl, does not read from disk
+//        transaction_list = new HashSet<>();
+        recover();
 
         while (!reconnect()) {
             // would be better to sleep a while
+            try
+            {
+                Thread.sleep(500);
+            }
+            catch (InterruptedException e)
+            {
+            }
         }
     }
 
@@ -139,6 +136,8 @@ public class WorkflowControllerImpl
         int xid = tm.start();
         // local list to store all xid within wc
         transaction_list.add(xid);
+        // persist to local disk
+        objectWrite(transaction_list, wc_persist);
         return xid;
     }
 
@@ -153,6 +152,9 @@ public class WorkflowControllerImpl
             tm.commit(xid);
             System.out.println("xid = " + xid + " commit successfully!");
             transaction_list.remove(xid);
+            // persist to local disk
+
+            objectWrite(transaction_list, wc_persist);
             return true;
         }catch (Exception e){
             throw new TransactionAbortedException(xid, "");
@@ -170,6 +172,8 @@ public class WorkflowControllerImpl
         }
         tm.abort(xid);
         transaction_list.remove(xid);
+        // persist to local disk
+        objectWrite(transaction_list, wc_persist);
         return;
     }
 
@@ -583,21 +587,21 @@ public class WorkflowControllerImpl
             for (Reservation reservation : reservations){
                 switch (reservation.getResvType()){
                     case Reservation.RESERVATION_TYPE_FLIGHT:{
-                        Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), reservation.getKey());
+                        Flight flight = (Flight) rmFlights.query(xid, rmFlights.getID(), reservation.getResvKey());
                         if (flight != null) {
                             totalBill += flight.getPrice();
                         }
                         break;
                     }
                     case Reservation.RESERVATION_TYPE_HOTEL:{
-                        Hotel hotel = (Hotel) rmRooms.query(xid, rmRooms.getID(), reservation.getKey());
+                        Hotel hotel = (Hotel) rmRooms.query(xid, rmRooms.getID(), reservation.getResvKey());
                         if (hotel != null) {
                             totalBill += hotel.getPrice();
                         }
                         break;
                     }
                     case Reservation.RESERVATION_TYPE_CAR:{
-                        Car car = (Car) rmCars.query(xid, rmCars.getID(), reservation.getKey());
+                        Car car = (Car) rmCars.query(xid, rmCars.getID(), reservation.getResvKey());
                         if (car != null) {
                             totalBill += car.getPrice();
                         }
@@ -977,5 +981,59 @@ public class WorkflowControllerImpl
     public boolean dieRMBeforeAbort(String who)
             throws RemoteException {
         return setDieTime(who, "BeforeAbort");
+    }
+
+
+
+    private boolean objectWrite(Object o, String path){
+        File file = new File(path);
+        ObjectOutputStream oout = null;
+        try {
+            oout = new ObjectOutputStream(new FileOutputStream(file));
+            oout.writeObject(o);
+            oout.flush();
+            return true;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            try {
+                if (oout != null)
+                    oout.close();
+            } catch (IOException e1) {
+            }
+        }
+    }
+
+    protected Object objectLoad(String path)
+    {
+        ObjectInputStream oin = null;
+        File file = new File(path);
+        try
+        {
+            oin = new ObjectInputStream(new FileInputStream(file));
+            return oin.readObject();
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+        finally
+        {
+            try
+            {
+                if (oin != null)
+                    oin.close();
+            }
+            catch (IOException e1)
+            {
+            }
+        }
+    }
+
+    private void recover(){
+        Object ol = objectLoad(wc_persist);
+        if (ol != null){
+            transaction_list = (HashSet<Integer>) ol;
+        }
     }
 }
