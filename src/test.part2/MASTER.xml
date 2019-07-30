@@ -87,76 +87,76 @@
 
   <!-- Locking tests -->
 
-  <!--<test id="Lconc" fpoints="5">-->
-    <!--Two non-conflicting concurrent transactions fail.-->
-  <!--</test>-->
+  <test id="Lconc" fpoints="5">
+    Two non-conflicting concurrent transactions fail.
+  </test>
 
-  <!--<test id="Liti1">-->
-    <!--reserveItinerary does not acquire all necessary locks.-->
-  <!--</test>-->
+  <test id="Liti1">
+    reserveItinerary does not acquire all necessary locks.
+  </test>
 
-  <!--<test id="Liti2">-->
-    <!--reserveItinerary does not acquire all necessary locks.-->
-  <!--</test>-->
+  <test id="Liti2">
+    reserveItinerary does not acquire all necessary locks.
+  </test>
 
-  <!--<test id="Liti3">-->
-    <!--reserveItinerary does not acquire all necessary locks.-->
-  <!--</test>-->
+  <test id="Liti3">
+    reserveItinerary does not acquire all necessary locks.
+  </test>
 
-  <!--<test id="Ldeadlock" fpoints="5">-->
-    <!--Deadlocked transaction is not aborted.-->
-  <!--</test>-->
+  <test id="Ldeadlock" fpoints="5">
+    Deadlocked transaction is not aborted.
+  </test>
 
 
   <!--Failure tests-->
 
-  <!--<test id="FdieAll" fpoints="5">-->
-    <!--After all components fail, previous committed transactions are lost.-->
-  <!--</test>-->
+  <test id="FdieAll" fpoints="5">
+    After all components fail, previous committed transactions are lost.
+  </test>
 
-  <!--<test id="FdieRM" fpoints="5">-->
-    <!--After RM fails, transaction is not forcibly aborted.-->
-  <!--</test>-->
+  <test id="FdieRM" fpoints="5">
+    After RM fails, transaction is not forcibly aborted.
+  </test>
 
-  <!--<test id="FdienpRM" fpoints="5">-->
-    <!--After non-participant RM fails, transaction cannot be committed.-->
-  <!--</test>-->
+  <test id="FdienpRM" fpoints="5">
+    After non-participant RM fails, transaction cannot be committed.
+  </test>
 
-  <!--<test id="FdieWC" fpoints="5">-->
-    <!--After WC fails, transaction cannot be committed.-->
-  <!--</test>-->
+  <test id="FdieWC" fpoints="5">
+    After WC fails, transaction cannot be committed.
+  </test>
 
   <test id="FdieTM" fpoints="5">
     After TM fails, transaction is not forcibly aborted.
   </test>
 
-  <!--<test id="FdieRMAfterEnlist" fpoints="5">-->
-    <!--dieRMAfterEnlist: transaction is not forcibly aborted.-->
-  <!--</test>-->
+  <test id="FdieRMAfterEnlist" fpoints="5">
+    dieRMAfterEnlist: transaction is not forcibly aborted.
+  </test>
 
-  <!--<test id="FdieRMBeforePrepare" fpoints="5">-->
-    <!--dieRMBeforePrepare: transaction is not forcibly aborted.-->
-  <!--</test>-->
+  <test id="FdieRMBeforePrepare" fpoints="5">
+    dieRMBeforePrepare: transaction is not forcibly aborted.
+  </test>
 
-  <!--<test id="FdieRMAfterPrepare" fpoints="5">-->
-    <!--dieRMAfterPrepare: transaction is not forcibly aborted.-->
-  <!--</test>-->
+  <test id="FdieRMAfterPrepare" fpoints="5">
+    dieRMAfterPrepare: transaction is not forcibly aborted.
+  </test>
 
-  <!--<test id="FdieTMBeforeCommit" fpoints="5">-->
-    <!--dieTMBeforeCommit: transaction is not forcibly aborted.-->
-  <!--</test>-->
-  <!--&lt;!&ndash;&ndash;&gt;-->
+  <test id="FdieTMBeforeCommit" fpoints="5">
+    dieTMBeforeCommit: transaction is not forcibly aborted.
+  </test>
+  <!---->
 
-  <!--<test id="FdieTMAfterCommit" fpoints="5">-->
-    <!--dieTMAfterCommit: transaction is not committed.-->
-  <!--</test>-->
+  <test id="FdieTMAfterCommit" fpoints="5">
+    dieTMAfterCommit: transaction is not committed.
+  </test>
 
-  <!--<test id="FdieRMBeforeCommit" fpoints="5">-->
-    <!--dieRMBeforeCommit: RM does not recover properly.-->
-  <!--</test>-->
+  <test id="FdieRMBeforeCommit" fpoints="5">
+    dieRMBeforeCommit: RM does not recover properly.
+  </test>
 
-  <!--<test id="Funlock" fpoints="5">-->
-    <!--RM releases locks before final commit.-->
-  <!--</test>-->
+  <test id="Funlock" fpoints="5">
+    RM releases locks before final commit.
+  </test>
 
 </tests>

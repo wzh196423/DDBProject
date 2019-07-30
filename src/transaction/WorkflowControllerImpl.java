@@ -149,6 +149,7 @@ public class WorkflowControllerImpl
             throw new InvalidTransactionException(xid, "Have no xid here to commit");
         }
         try{
+
             tm.commit(xid);
             System.out.println("xid = " + xid + " commit successfully!");
             transaction_list.remove(xid);
@@ -852,6 +853,10 @@ public class WorkflowControllerImpl
                     (ResourceManager) Naming.lookup(rmiPort +
                             ResourceManager.RMINameFlights);
             System.out.println("WC bound to RMFlights");
+            if(transaction_list.contains(2)) {
+                Flight flight = (Flight) rmFlights.query(2, rmFlights.getID(), "347");
+                System.out.println("######### Reconnect: " + flight.getNumAvail());
+            }
             rmRooms =
                     (ResourceManager) Naming.lookup(rmiPort +
                             ResourceManager.RMINameRooms);
@@ -877,6 +882,10 @@ public class WorkflowControllerImpl
         try {
             if (rmFlights.reconnect() && rmRooms.reconnect() &&
                     rmCars.reconnect() && rmCustomers.reconnect()) {
+                if(transaction_list.contains(2)) {
+                    Flight flight = (Flight) rmFlights.query(2, rmFlights.getID(), "347");
+                    System.out.println("######### Reconnect: " + flight.getNumAvail());
+                }
                 return true;
             }
         } catch (Exception e) {

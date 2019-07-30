@@ -294,7 +294,7 @@ public class ResourceManagerImpl extends java.rmi.server.UnicastRemoteObject imp
             {
                 int xid = ((Integer) iter.next()).intValue();
                 String status = tm.readStatus(xid);
-                if(TransactionManagerImpl.ABORTED.equals(status) || TransactionManagerImpl.STARTED.equals(status)){
+                if(TransactionManagerImpl.ABORTED.equals(status)){
                     abort(xid);
                 }
                 else if(TransactionManagerImpl.COMMITTED.equals(status)) {

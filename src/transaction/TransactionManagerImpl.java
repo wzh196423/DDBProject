@@ -187,18 +187,13 @@ public class TransactionManagerImpl
     public void enlist(int xid, ResourceManager rm) throws RemoteException {
 
         if (!hold_list.containsKey(xid)) {
-            // means the transaction(id=xid) has been committed
-//            String status = readStatus(xid);
-//            System.out.println("xid=" + xid + ", status=" + status);
-//            try {
-//                if (COMMITTED.equals(status))
-//                    rm.commit(xid);
-//                else if (ABORTED.equals(status))
-//                    rm.abort(xid);
-//            } catch (InvalidTransactionException e) {
-//                e.printStackTrace();
-//                throw new RemoteException("Enlist fail!");
-//            }
+
+            try {
+                rm.abort(xid);
+            } catch (InvalidTransactionException e) {
+                e.printStackTrace();
+                throw new RemoteException("Enlist fail!");
+            }
             return;
         }
         synchronized (hold_list) {
@@ -238,7 +233,7 @@ public class TransactionManagerImpl
     @Override
     public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
         if (!hold_list.containsKey(xid))
-            return false;
+            throw new TransactionAbortedException(xid, "Transaction aborted!");
 
         Set<ResourceManager> list = hold_list.get(xid);
         if (waitingToAbort.contains(xid)) {
@@ -253,6 +248,7 @@ public class TransactionManagerImpl
         for (ResourceManager rm: list) {
             try {
                 if (rm.prepare(xid)) {
+
                     preparedList.add(rm);
                 }
             } catch (Exception e) {
@@ -265,6 +261,7 @@ public class TransactionManagerImpl
         if (preparedList.size() == list.size()) {
             for (ResourceManager rm : list) {
                 try {
+                    System.out.println("Commit " + xid + ", rm " + rm.getID());
                     rm.commit(xid);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -311,6 +308,8 @@ public class TransactionManagerImpl
     }
 
     public void recover() throws RemoteException{
+        System.out.println("TM recover");
+
         int max_id = 0;
         HashSet<Integer> t_xids = new HashSet<>(100);
         BufferedReader reader = null;
@@ -344,11 +343,11 @@ public class TransactionManagerImpl
             }
         }
 
-        synchronized (hold_list) {
-            for(int xid: t_xids) {
-                hold_list.put(xid, new HashSet<ResourceManager>());
-            }
-        }
+//        synchronized (hold_list) {
+//            for(int xid: t_xids) {
+//                hold_list.put(xid, new HashSet<ResourceManager>());
+//            }
+//        }
 
         synchronized (waitingToAbort) {
             for(int xid: t_xids) {
