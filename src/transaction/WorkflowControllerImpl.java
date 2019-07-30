@@ -824,8 +824,6 @@ public class WorkflowControllerImpl
                         return false;
                 }
             }
-            System.out.println("See what the num");
-            System.out.println(((Flight)rmFlights.query(xid, rmFlights.getID(), "347")).getNumAvail());
             return true;
         } catch (DeadlockException e) {
             abort(xid);
