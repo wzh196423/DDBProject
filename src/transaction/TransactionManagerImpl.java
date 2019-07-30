@@ -259,11 +259,14 @@ public class TransactionManagerImpl
         if (dieTime.equals("BeforeCommit"))
             dieNow();
         if (preparedList.size() == list.size()) {
+            System.out.println("list size = " + list.size());
             for (ResourceManager rm : list) {
                 try {
                     System.out.println("Commit " + xid + ", rm " + rm.getID());
+
                     rm.commit(xid);
                 } catch (Exception e) {
+                    System.out.println(rm.getID() + "commit xid = " + xid + "exception");
                     e.printStackTrace();
                 }
             }
@@ -282,6 +285,7 @@ public class TransactionManagerImpl
             synchronized (hold_list) {
                 hold_list.remove(xid);
             }
+
             recordStatus(xid, ABORTED);
             System.out.println("All rm has aborted successfully since some rm has aborted before!");
             throw new TransactionAbortedException(xid, "Transaction aborted!");

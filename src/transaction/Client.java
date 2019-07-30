@@ -27,7 +27,7 @@ import java.lang.reflect.*;
 
 public class Client {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
-    private static final long LAUNCHSLEEP = 5000; // 5 seconds
+    private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
     private static final long BCFINISHDELAY = 500; // 1/2 second
 

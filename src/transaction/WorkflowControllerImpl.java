@@ -148,20 +148,23 @@ public class WorkflowControllerImpl
         if (!transaction_list.contains(xid)){
             throw new InvalidTransactionException(xid, "Have no xid here to commit");
         }
+
         try{
 
             tm.commit(xid);
             System.out.println("xid = " + xid + " commit successfully!");
-            transaction_list.remove(xid);
-            // persist to local disk
-
-            objectWrite(transaction_list, wc_persist);
+            synchronized (transaction_list) {
+                transaction_list.remove(xid);
+                // persist to local disk
+                objectWrite(transaction_list, wc_persist);
+            }
             return true;
         }catch (TransactionAbortedException e){
             e.printStackTrace();
             throw new TransactionAbortedException(xid, "");
         }
         catch (Exception e) {
+
             System.out.println("jjjjjjjjjj");
             e.printStackTrace();
             throw new RemoteException("Tm has died!");
@@ -821,6 +824,8 @@ public class WorkflowControllerImpl
                         return false;
                 }
             }
+            System.out.println("See what the num");
+            System.out.println(((Flight)rmFlights.query(xid, rmFlights.getID(), "347")).getNumAvail());
             return true;
         } catch (DeadlockException e) {
             abort(xid);
