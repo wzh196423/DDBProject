@@ -1,26 +1,20 @@
 package test;
 
-import transaction.Client;
-import transaction.ResourceManager;
-import transaction.TransactionManager;
-import transaction.WorkflowController;
+import transaction.*;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+
 import java.net.URISyntaxException;
 import java.rmi.Naming;
-import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
-import java.util.Vector;
+
 
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class FRMAfterEnlist {
+public class DieRMAfterPrepare {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
-    private static final long LAUNCHSLEEP = 1000; // 5 seconds
+    private static final long LAUNCHSLEEP = 5000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
     private static final long BCFINISHDELAY = 500; // 1/2 second
 
@@ -53,9 +47,8 @@ public class FRMAfterEnlist {
 
         launchAll();
 
-        int xid = 0;
         try {
-            xid = wc.start();
+            int xid = wc.start();
             if(!wc.addFlight(xid, "347", 100, 310)) {
                 System.out.println("Add flight fail!");
                 dieAll();
@@ -78,51 +71,80 @@ public class FRMAfterEnlist {
                 dieAll();
             }
 
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Add and commit fail!");
-            dieAll();
-        }
 
-        try {
             xid = wc.start();
-            if(!wc.dieRMAfterEnlist("RMRooms")) {
-                System.out.println("Die RMRooms fail!");
-                dieAll();
-            }
             if(!wc.addFlight(xid, "347", 100, 620)) {
-                System.out.println("Add flights fail!");
+                System.out.println("Add flight fail!");
                 dieAll();
             }
+            if(!wc.addRooms(xid, "Stanford", 200, 300)) {
+                System.out.println("Add rooms fail!");
+                dieAll();
+            }
+            if(!wc.addCars(xid, "SFO", 300, 60)) {
+                System.out.println("Add cars fail!");
+                dieAll();
+            }
+
+            if(!wc.dieRMAfterPrepare("RMFlights")) {
+                System.out.println("Die RMFlights fail!");
+                dieAll();
+            }
+
+            try {
+                wc.commit(xid);
+                System.out.println("Catch exception fail!");
+                dieAll();
+            }
+            catch (TransactionAbortedException e) {
+
+            }
+
+            launch("RMFlights", "ResourceManagerImpl");
+            if (!wc.reconnect()) {
+                System.out.println("Reconnect fail!");
+                dieAll();
+            }
+
+            xid = wc.start();
+            if(wc.queryFlight(xid, "347") != 100) {
+                System.out.println("Query flight fail!");
+                dieAll();
+            }
+            if(wc.queryFlightPrice(xid, "347") != 310) {
+                System.out.println("Query flights price fail!");
+                dieAll();
+            }
+            if(wc.queryRooms(xid, "Stanford") != 200) {
+                System.out.println("Query rooms fail!");
+                dieAll();
+            }
+            if(wc.queryRoomsPrice(xid, "Stanford") != 150) {
+                System.out.println("Query rooms price fail!");
+                dieAll();
+            }
+            if(wc.queryCars(xid, "SFO") != 300) {
+                System.out.println("Query cars fail!");
+                dieAll();
+            }
+            if(wc.queryCarsPrice(xid, "SFO") != 30) {
+                System.out.println("Query cars price fail!");
+                dieAll();
+            }
+
+            if(wc.queryCustomerBill(xid, "John") != 0) {
+                System.out.println("Query customer bill fail!");
+                dieAll();
+            }
+
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Add  fail!");
+            System.out.println("Query fail!");
             dieAll();
         }
 
-        try {
-            wc.reserveRoom(xid, "John", "Stanford");
-            System.out.println("Reverse fail!");
-            dieAll();
-        }
-        catch (Exception e) {
-
-        }
-
-        try {
-            launch(ResourceManager.RMINameRooms, "ResourceManagerImpl");
-            if(!wc.reconnect()) {
-                System.out.println("Launch RMRooms fail!");
-                dieAll();
-            }
-        }catch (Exception e) {
-            System.out.println("Launch RMRooms fail!");
-            dieAll();
-        }
-
-        System.out.println("Add and commit pass!");
+        System.out.println("Die TM pass!");
         dieAll();
 
         delDir(dataDir);

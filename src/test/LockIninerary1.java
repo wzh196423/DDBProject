@@ -8,16 +8,13 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
-import java.util.List;
-import java.util.Properties;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by 14302 on 2019/7/28.
  */
-public class LDeadLock {
+public class LockIninerary1 {
     private static final long TESTTIMEOUT = 180000; // 3 minutes
     private static final long LAUNCHSLEEP = 1000; // 5 seconds
     private static final long BCNEXTOPDELAY = 1000; // 1 second
@@ -43,56 +40,42 @@ public class LDeadLock {
 
         public void run() {
             synchronized (lock) {
-                while (!lock.get()) {
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        System.out.println("Dead lock fail!");
-                        dieAll();
-                    }
-                }
-
                 try {
+                    while (!lock.get()) {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            System.out.println("Dead lock fail!");
+                            dieAll();
+                        }
+                    }
+
                     xid = wc.start();
-//                    System.out.println("Thread: " + xid);
-                    if (!wc.reserveFlight(xid, "John", "347")) {
-                        System.out.println("Dead lock fail!");
+
+                    lock.set(false);
+                    lock.notifyAll();
+
+                    while (!lock.get()) {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            System.out.println("Dead lock fail!");
+                            dieAll();
+                        }
+                    }
+
+
+                    if (wc.queryFlight(xid, "3471") != 1000) {
+                        System.out.println("Query fail!");
                         dieAll();
                     }
 
-                    if (!wc.addRooms(xid, "Stanford", 200, 300)) {
-                        System.out.println("Dead lock fail!");
-                        dieAll();
-                    }
-                } catch (Exception e) {
-                    System.out.println("Dead lock fail!");
-                    dieAll();
-                }
-
-
-                lock.set(false);
-                lock.notifyAll();
-
-                while (!lock.get()) {
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        System.out.println("Dead lock fail!");
-                        dieAll();
-                    }
-                }
-
-                try {
-                    wc.queryCarsPrice(xid, "SFO");
-
-                    dieAll();
-                } catch (TransactionAbortedException e) {
-                    System.out.println("Catch Exception!");
                     lock.set(false);
                     lock.notifyAll();
 
                 } catch (Exception e) {
-                    System.out.println("Dead lock fail!");
+                    e.printStackTrace();
+                    System.out.println("Query fail!");
                     dieAll();
 
                 }
@@ -121,14 +104,15 @@ public class LDeadLock {
         TransactionThread thread = new TransactionThread();
         thread.start();
 
-        int xid = 0;
-
         synchronized (lock) {
 
             try {
-                xid = wc.start();
-//                System.out.println(xid);
+                int xid = wc.start();
                 if (!wc.addFlight(xid, "347", 100, 310)) {
+                    System.out.println("Add flight fail!");
+                    dieAll();
+                }
+                if (!wc.addFlight(xid, "3471", 1001, 3101)) {
                     System.out.println("Add flight fail!");
                     dieAll();
                 }
@@ -150,106 +134,51 @@ public class LDeadLock {
                     dieAll();
                 }
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Add and commit fail!");
-                dieAll();
-            }
 
-            try {
                 xid = wc.start();
-//                System.out.println(xid);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Add and commit fail!");
-                dieAll();
-            }
 
+                lock.set(true);
+                lock.notifyAll();
+                while (lock.get()) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        System.out.println("Dead lock fail!");
+                        dieAll();
+                    }
+                }
 
-            lock.set(true);
-            lock.notifyAll();
-
-            while (lock.get()) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    System.out.println("Dead lock fail!");
+                ArrayList<String> flights = new ArrayList<>();
+                flights.add("347");
+                flights.add("3471");
+                if (!wc.reserveItinerary(xid, "John", flights, "Stanford", false, true)){
+                    System.out.println("reserveItinerary fail! xid = " + xid);
                     dieAll();
                 }
-            }
 
-            try {
-                if (!wc.addCars(xid, "SFO", 300, 60)) {
-                    System.out.println("Add and commit fail!");
-                    dieAll();
-                }
-            } catch (Exception e) {
-                System.out.println("Add and commit fail!");
-                dieAll();
-            }
+                lock.set(true);
+                lock.notifyAll();
 
+                Thread.sleep(2000);
 
-            lock.set(true);
-            lock.notifyAll();
-
-            while (lock.get()) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    System.out.println("Dead lock fail!");
-                    dieAll();
-                }
-            }
-
-            try {
                 if (!wc.commit(xid)) {
                     System.out.println("Add and commit fail!");
                     dieAll();
                 }
+
+                while (lock.get()) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        System.out.println("Lock fail!");
+                        dieAll();
+                    }
+                }
+
+
+
             } catch (Exception e) {
-                System.out.println("Add and commit fail!");
-                dieAll();
-            }
-
-            try {
-
-                xid = wc.start();
-//                System.out.println(xid);
-
-                if (wc.queryFlight(xid, "347") != 100) {
-                    System.out.println("Query flight fail!");
-                    dieAll();
-                }
-                if (wc.queryFlightPrice(xid, "347") != 310) {
-                    System.out.println("Query flights price fail!");
-                    dieAll();
-                }
-                if (wc.queryRooms(xid, "Stanford") != 200) {
-                    System.out.println("Query rooms fail!");
-                    dieAll();
-                }
-                if (wc.queryRoomsPrice(xid, "Stanford") != 150) {
-                    System.out.println("Query rooms price fail!");
-                    dieAll();
-                }
-
-//                System.out.println(wc.queryCars(xid, "SFO"));
-//                System.out.println(wc.queryCarsPrice(xid, "SFO"));
-                if (wc.queryCars(xid, "SFO") != 600) {
-                    System.out.println("Query cars fail!");
-                    dieAll();
-                }
-                if (wc.queryCarsPrice(xid, "SFO") != 60) {
-                    System.out.println("Query cars price fail!");
-                    dieAll();
-                }
-
-                if (wc.queryCustomerBill(xid, "John") != 0) {
-                    System.out.println("Query customer bill fail!");
-                    dieAll();
-                }
-            } catch (Exception e) {
-                System.out.println("Query customer bill fail!");
+                System.out.println("Lock fail!");
                 dieAll();
             }
         }

@@ -248,7 +248,6 @@ public class TransactionManagerImpl
         for (ResourceManager rm: list) {
             try {
                 if (rm.prepare(xid)) {
-
                     preparedList.add(rm);
                 }
             } catch (Exception e) {
